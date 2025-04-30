@@ -1,0 +1,19 @@
+FROM python:3.9-slim
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/src/app
+
+COPY requirements_jupyter.txt .
+RUN pip install --no-cache-dir -r requirements_jupyter.txt
+
+COPY . .
+
+WORKDIR /usr/src/app/treevaq
+
+EXPOSE 8888
+
+CMD ["python", "manage.py", "shell_plus", "--notebook", "--", "--allow-root", "--ip=0.0.0.0", "--NotebookApp.token="]

@@ -1,0 +1,35 @@
+{% extends 'app1/base.html' %}
+
+{% block title %}{{ product.name }} - Treevaq{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+        {% if product.image %}
+            <img src="{{ product.image.url }}" class="w-full rounded-lg" alt="{{ product.name }}">
+        {% else %}
+            <img src="https://via.placeholder.com/400" class="w-full rounded-lg" alt="No image">
+        {% endif %}
+    </div>
+    <div>
+        <h2 class="text-3xl font-semibold text-gray-800 mb-4">{{ product.name }}</h2>
+        <p class="text-gray-600 mb-2"><strong>Price:</strong> ${{ product.price }}</p>
+        <p class="text-gray-600 mb-2"><strong>Seller:</strong> {{ product.seller.username }}</p>
+        <p class="text-gray-600 mb-2"><strong>Posted on:</strong> {{ product.created_at|date:"F d, Y" }}</p>
+        {% if product.is_sustainable %}
+            <p class="text-gray-600 mb-2"><strong>Sustainability:</strong> <span class="inline-block bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded">Eco-Friendly</span></p>
+        {% endif %}
+        {% if product.carbon_footprint %}
+            <p class="text-gray-600 mb-2"><strong>Carbon Saved:</strong> {{ product.carbon_footprint.carbon_saved_kg }} kg</p>
+            {% if product.carbon_footprint.calculation_notes %}
+                <p class="text-gray-600 mb-2"><strong>Notes:</strong> {{ product.carbon_footprint.calculation_notes }}</p>
+            {% endif %}
+        {% else %}
+            <p class="text-gray-600 mb-2"><strong>Carbon Saved:</strong> Not calculated yet.</p>
+        {% endif %}
+        <p class="text-gray-600 mb-2"><strong>Description:</strong></p>
+        <p class="text-gray-600 mb-4">{{ product.description|default:"No description provided." }}</p>
+        <a href="{% url 'app1:product_list' %}" class="inline-block bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-600 transition">Back to Products</a>
+    </div>
+</div>
+{% endblock %}

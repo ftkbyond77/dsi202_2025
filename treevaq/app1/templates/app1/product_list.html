@@ -1,0 +1,40 @@
+{% extends 'app1/base.html' %}
+
+{% block title %}Products - Treevaq{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-semibold text-gray-800 mb-6">Our Sustainable Products</h2>
+
+<!-- Search Form -->
+<div class="mb-6">
+    <form method="get" action="{% url 'app1:product_list' %}" class="flex gap-3">
+        <input type="text" name="q" value="{{ query }}" class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Search by name or description..." aria-label="Search">
+        <button type="submit" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition">Search</button>
+    </form>
+</div>
+
+<!-- Product List -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {% for product in products %}
+    <div class="border rounded-lg shadow-md overflow-hidden flex flex-col h-full">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" class="card-img-top w-full" alt="{{ product.name }}">
+        {% else %}
+            <img src="https://via.placeholder.com/200" class="card-img-top w-full" alt="No image">
+        {% endif %}
+        <div class="p-4 flex-grow">
+            <h5 class="text-xl font-semibold text-gray-800 mb-2">{{ product.name }}</h5>
+            <p class="text-gray-600 mb-2">Price: ${{ product.price }}</p>
+            {% if product.is_sustainable %}
+                <span class="inline-block bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded">Sustainable</span>
+            {% endif %}
+        </div>
+        <div class="p-4">
+            <a href="{% url 'app1:product_detail' product.pk %}" class="block text-center bg-green-600 text-white font-semibold py-2 rounded-lg hover:bg-green-700 transition">View Details</a>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-gray-600">No products found matching your search.</p>
+    {% endfor %}
+</div>
+{% endblock %}

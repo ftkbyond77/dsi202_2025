@@ -1,0 +1,12 @@
+{% extends 'app1/base.html' %}
+
+{% block title %}Treevaq - Sustainable Marketplace{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <h1 class="text-4xl font-bold text-gray-800 mb-4">Welcome to Treevaq</h1>
+    <p class="text-lg text-gray-600 mb-6">Discover sustainable products that help you save the planet, one purchase at a time.</p>
+    <a href="{% url 'app1:product_list' %}" class="inline-block bg-green-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-700 transition">Shop Now</a>
+</div>
+{% endblock %} 
+

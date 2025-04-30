@@ -1,0 +1,62 @@
+{% extends 'app1/base.html' %}
+
+{% block title %}Dashboard - Treevaq{% endblock %}
+
+{% block content %}
+<section class="py-12">
+    <div class="container mx-auto px-4">
+        <h1 class="text-4xl font-bold text-gray-800 mb-8 text-center">Treevaq Dashboard</h1>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <!-- Total Products -->
+            <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                <h2 class="text-xl font-semibold text-gray-700 mb-2">Total Products</h2>
+                <p class="text-3xl font-bold text-green-600">{{ total_products }}</p>
+            </div>
+            <!-- Sustainable Products -->
+            <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                <h2 class="text-xl font-semibold text-gray-700 mb-2">Sustainable Products</h2>
+                <p class="text-3xl font-bold text-green-600">{{ sustainable_products }}</p>
+            </div>
+            <!-- Total Carbon Saved -->
+            <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                <h2 class="text-xl font-semibold text-gray-700 mb-2">Total Carbon Saved</h2>
+                <p class="text-3xl font-bold text-green-600">{{ total_carbon_saved }} kg</p>
+            </div>
+            <!-- Average Price -->
+            <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                <h2 class="text-xl font-semibold text-gray-700 mb-2">Average Price</h2>
+                <p class="text-3xl font-bold text-green-600">${{ average_price }}</p>
+            </div>
+        </div>
+
+        <!-- Products Per Seller Table -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Products Per Seller</h2>
+            {% if products_per_seller %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="px-4 py-2 text-left text-gray-700 font-semibold">Seller</th>
+                                <th class="px-4 py-2 text-left text-gray-700 font-semibold">Number of Products</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for seller in products_per_seller %}
+                            <tr class="border-b">
+                                <td class="px-4 py-2 text-gray-600">{{ seller.username }}</td>
+                                <td class="px-4 py-2 text-gray-600">{{ seller.product_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-gray-600 text-center">No products available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
