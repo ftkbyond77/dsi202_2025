@@ -1,0 +1,77 @@
+{% extends 'app1/base.html' %}
+
+{% block title %}Blog - Treevaq{% endblock %}
+
+{% block content %}
+<section class="py-6 bg-gray-100">
+    <div class="container mx-auto px-4">
+        <h1 class="text-5xl font-bold text-gray-900 mb-6 text-center animate-fade-in">Treevaq Newsroom</h1>
+
+        <!-- News Ticker -->
+        <div class="bg-black text-white py-2 overflow-hidden whitespace-nowrap relative mb-6">
+            <div class="ticker inline-block" style="min-width: 100%;">
+                Breaking News: Learn sustainable living tips | New eco-products launched | CO2 savings update!
+            </div>
+        </div>
+
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Featured Article -->
+        {% if articles and articles|length > 0 %}
+            <div class="mb-8 bg-white rounded-lg shadow-lg overflow-hidden animate-fade-in">
+                {% with article=articles|first %}
+                    <div class="relative">
+                        {% if article.image %}
+                            <img src="{{ article.image.url }}" class="w-full h-64 object-cover" alt="{{ article.title }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/1200x400" class="w-full h-64 object-cover" alt="Default Featured Image">
+                        {% endif %}
+                        <div class="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white p-4 w-full">
+                            <h2 class="text-3xl font-bold mb-2">{{ article.title }}</h2>
+                            <p class="text-sm">{{ article.summary }}</p>
+                            <div class="text-xs mt-2">
+                                By {{ article.author }} | {{ article.published_date|date:"F d, Y" }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <a href="{% url 'app1:blog_detail' article.id %}" class="mt-4 inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition animate-bounce-slow">Read Full Article</a>
+                    </div>
+                {% endwith %}
+            </div>
+        {% endif %}
+
+        <!-- Secondary Articles Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for article in articles|slice:"1:" %}
+                <div class="bg-white rounded-lg shadow-md p-4 animate-fade-in">
+                    {% if article.image %}
+                        <img src="{{ article.image.url }}" class="w-full h-40 object-cover rounded mb-4" alt="{{ article.title }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/600x400" class="w-full h-40 object-cover rounded mb-4" alt="Default Article Image">
+                    {% endif %}
+                    <h2 class="text-xl font-semibold text-gray-800 mb-2">{{ article.title }}</h2>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">{{ article.summary }}</p>
+                    <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+                        <span>By {{ article.author }}</span>
+                        <span>{{ article.published_date|date:"F d, Y" }}</span>
+                    </div>
+                    <a href="{% url 'app1:blog_detail' article.id %}" class="inline-block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">Read More</a>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if not articles %}
+            <p class="text-gray-600 text-center animate-fade-in">No articles available yet.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

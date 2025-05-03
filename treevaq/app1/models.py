@@ -33,3 +33,16 @@ class CarbonFootprint(models.Model):
 
     def __str__(self):
         return f"Carbon Footprint for {self.product.name}"
+    
+class Blog(models.Model):
+    title = models.CharField(max_length=200)
+    summary = models.TextField()
+    content = models.TextField()
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='blog_posts')
+    image = models.ImageField(upload_to='blog_images/', null=True, blank=True)
+    published_date = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title

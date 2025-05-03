@@ -3,7 +3,7 @@
 {% block title %}{{ product.name }} - Treevaq{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
     <div>
         {% if product.image %}
             <img src="{{ product.image.url }}" class="w-full rounded-lg" alt="{{ product.name }}">
@@ -29,7 +29,8 @@
         {% endif %}
         <p class="text-gray-600 mb-2"><strong>Description:</strong></p>
         <p class="text-gray-600 mb-4">{{ product.description|default:"No description provided." }}</p>
-        <a href="{% url 'app1:product_list' %}" class="inline-block bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-600 transition">Back to Products</a>
+        <a href="{% url 'app1:product_list' %}" class="inline-block bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-600 transition animate-bounce-slow">Back to Products</a>
+        <a href="{% url 'app1:add_to_cart' product.pk %}" class="inline-block ml-4 bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition animate-bounce-slow">Add to Cart</a>
     </div>
 </div>
 {% endblock %}

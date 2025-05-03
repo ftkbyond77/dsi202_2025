@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, CarbonFootprint
+from .models import Product, CarbonFootprint, Blog
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -22,3 +22,5 @@ class CarbonFootprintAdmin(admin.ModelAdmin):
             footprint.calculate_carbon_saving()
         self.message_user(request, "Carbon savings recalculated successfully.")
     recalculate_carbon_saving.short_description = "Recalculate carbon savings for selected items"
+
+admin.site.register(Blog)

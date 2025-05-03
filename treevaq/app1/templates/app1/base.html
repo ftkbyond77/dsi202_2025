@@ -18,17 +18,12 @@
         .animate-fade-in {
             animation: fadeIn 1s ease-out forwards;
         }
-        .animate-fade-in-delayed {
-            animation: fadeIn 1s ease-out forwards;
-            animation-delay: 0.3s;
-            opacity: 0;
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
-        .animate-pulse {
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .animate-bounce-slow {
+            animation: bounce 2s infinite;
         }
     </style>
 </head>
@@ -37,10 +32,19 @@
     <nav class="fixed top-0 w-full bg-gray-100 shadow-md">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <a class="text-xl font-bold text-green-600" href="{% url 'app1:home' %}">Treevaq</a>
-            <div class="space-x-4">
+            <div class="space-x-4 flex items-center">
                 <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:home' %}">Home</a>
                 <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:product_list' %}">Products</a>
+                <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:blog' %}">Blog</a>                
                 <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:dashboard' %}">Dashboard</a>
+                <a class="text-gray-700 hover:text-green-600 relative" href="{% url 'app1:view_cart' %}">
+                    Cart
+                    {% if cart_total > 0 %}
+                        <span class="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full -mt-2 -mr-2 animate-fade-in">
+                            {{ cart_total }}
+                        </span>
+                    {% endif %}
+                </a>
             </div>
         </div>
     </nav>
@@ -52,4 +56,3 @@
     </div>
 </body>
 </html>
-

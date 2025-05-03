@@ -1,0 +1,41 @@
+{% extends 'app1/base.html' %}
+
+{% block title %}Cart - Treevaq{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-semibold text-gray-800 mb-6 animate-fade-in">Your Cart</h2>
+
+{% if cart_items %}
+    <div class="flex flex-col gap-6">
+        {% for item in cart_items %}
+            <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-md animate-fade-in">
+                <div class="flex items-center gap-4">
+                    <!-- Product Image -->
+                    {% if item.product.image %}
+                        <img src="{{ item.product.image.url }}" class="w-12 h-12 object-cover rounded" alt="{{ item.product.name }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/50" class="w-12 h-12 object-cover rounded" alt="No image">
+                    {% endif %}
+                    <!-- Product Details -->
+                    <div>
+                        <h3 class="text-lg font-semibold">{{ item.product.name }}</h3>
+                        <p class="text-sm text-gray-600 line-clamp-2">{{ item.product.description|default:"No description provided." }}</p>
+                        <p class="text-sm text-gray-600 mt-1">
+                            Price: ${{ item.product.price }} x {{ item.quantity }} = ${{ item.subtotal }}
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <a href="{% url 'app1:product_detail' item.product.pk %}" class="text-blue-600 hover:underline">View Details</a>
+                </div>
+            </div>
+        {% endfor %}
+        <div class="bg-gray-100 p-4 rounded-lg mt-4 animate-fade-in">
+            <h3 class="text-xl font-semibold">Total: ${{ total }}</h3>
+            <a href="{% url 'app1:checkout' %}" class="block mt-4 bg-green-600 text-white text-center font-semibold py-2 rounded-lg hover:bg-green-700 transition animate-bounce-slow">Proceed to Checkout</a>
+        </div>
+    </div>
+{% else %}
+    <p class="text-gray-600 animate-fade-in">Your cart is empty.</p>
+{% endif %}
+{% endblock %}

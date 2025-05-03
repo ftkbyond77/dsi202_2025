@@ -3,10 +3,44 @@
 {% block title %}Treevaq - Sustainable Marketplace{% endblock %}
 
 {% block content %}
-<div class="text-center">
-    <h1 class="text-4xl font-bold text-gray-800 mb-4">Welcome to Treevaq</h1>
-    <p class="text-lg text-gray-600 mb-6">Discover sustainable products that help you save the planet, one purchase at a time.</p>
-    <a href="{% url 'app1:product_list' %}" class="inline-block bg-green-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-700 transition">Shop Now</a>
-</div>
-{% endblock %} 
+<!-- Hero Section -->
+<section class="relative bg-gradient-to-r from-green-500 to-teal-500 text-white py-20">
+    <div class="container mx-auto px-4 text-center">
+        <h1 class="text-5xl md:text-6xl font-bold mb-4 animate-fade-in">Green Living, Made Simple</h1>
+        <p class="text-lg md:text-xl mb-8 animate-fade-in animate-fade-in-delayed">Discover sustainable products that help you save the planet, one purchase at a time.</p>
+        <a href="{% url 'app1:product_list' %}" class="inline-block bg-white text-green-600 font-semibold text-lg py-3 px-8 rounded-full hover:bg-green-100 transition transform hover:scale-105 animate-bounce-slow">
+            Shop Now
+        </a>
+    </div>
+</section>
 
+<!-- Why Shop With Us Section -->
+<section class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4 text-center">
+        <h2 class="text-3xl font-semibold text-gray-800 mb-12 animate-fade-in">Why Shop With Treevaq?</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition animate-fade-in">
+                <svg class="w-12 h-12 mx-auto mb-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Eco-Friendly Products</h3>
+                <p class="text-gray-600">Every item is sustainably sourced to reduce your carbon footprint.</p>
+            </div>
+            <div class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition animate-fade-in animate-fade-in-delayed">
+                <svg class="w-12 h-12 mx-auto mb-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Transparent Impact</h3>
+                <p class="text-gray-600">See the carbon savings for each product you buy.</p>
+            </div>
+            <div class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition animate-fade-in animate-fade-in-delayed">
+                <svg class="w-12 h-12 mx-auto mb-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Affordable Prices</h3>
+                <p class="text-gray-600">Sustainable living doesn't have to break the bank.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

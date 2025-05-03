@@ -1,0 +1,30 @@
+{% extends 'app1/base.html' %}
+
+{% block title %}Checkout - Treevaq{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-semibold text-gray-800 mb-6 animate-fade-in">Checkout</h2>
+
+{% if cart_items %}
+    <div class="flex flex-col gap-6">
+        {% for item in cart_items %}
+            <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-md animate-fade-in">
+                <div>
+                    <h3 class="text-lg font-semibold">{{ item.product.name }}</h3>
+                    <p class="text-gray-600">Price: ${{ item.product.price }} x {{ item.quantity }} = ${{ item.subtotal }}</p>
+                </div>
+            </div>
+        {% endfor %}
+        <div class="bg-gray-100 p-4 rounded-lg mt-4 animate-fade-in">
+            <h3 class="text-xl font-semibold">Total: ${{ total }}</h3>
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                <button type="submit" class="block w-full bg-green-600 text-white text-center font-semibold py-2 rounded-lg hover:bg-green-700 transition animate-bounce-slow">Place Order</button>
+            </form>
+            <a href="{% url 'app1:view_cart' %}" class="block mt-2 text-blue-600 hover:underline">Back to Cart</a>
+        </div>
+    </div>
+{% else %}
+    <p class="text-gray-600 animate-fade-in">Your cart is empty.</p>
+{% endif %}
+{% endblock %}
