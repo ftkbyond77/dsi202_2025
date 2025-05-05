@@ -1,17 +1,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import models
 from django.views.generic import ListView, DetailView
-from .models import Product, CarbonFootprint, User
+from .models import Product, CarbonFootprint, Blog, CommunityPost, User
 from django.db.models import Q, Sum, Avg, Count
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test, login_required
 from rest_framework import generics, permissions
 from .serializers import ProductSerializer
-from .models import Product, CarbonFootprint, Blog
 
 from django.utils import timezone
 from datetime import datetime, timedelta
 from django.contrib import messages
+from .forms import ProductPostForm, ReviewForm, QuestionForm, AnswerForm
 
 # Template Views
 def home(request):
@@ -212,6 +212,85 @@ def blog_detail(request, article_id):
     article = get_object_or_404(Blog, id=article_id)
     context = {'article': article}
     return render(request, 'app1/blog_details.html', context)
+
+@login_required
+def community(request):
+    # Initialize Review Form
+    review_form = ReviewForm(request.POST if request.method == 'POST' else None)
+
+    # Handle Form Submissions (for reviews)
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        
+        if form_type == 'review' and review_form.is_valid():
+            review_form.save(request.user)
+            messages.success(request, "Review submitted successfully!")
+            return redirect('app1:community')
+        
+        # Handle Voting
+        elif request.POST.get('action') == 'vote':
+            post_id = request.POST.get('post_id')
+            vote_type = request.POST.get('vote_type')
+            post = get_object_or_404(CommunityPost, id=post_id)
+            if vote_type == 'upvote':
+                post.upvotes += 1
+            elif vote_type == 'downvote':
+                post.downvotes += 1
+            post.save()
+            return redirect('app1:community')
+
+    # Fetch Products and Associated Reviews
+    products = Product.objects.all()
+    # Simulate topics (since Product model doesn't have this field)
+    for product in products:
+        product.topics = ["Sustainable"] if product.is_sustainable else ["General"]
+        if "Bag" in product.name:
+            product.topics.append("Fashion")
+        elif "Bottle" in product.name or "Container" in product.name:
+            product.topics.append("Kitchen")
+        elif "Toothbrush" in product.name:
+            product.topics.append("Personal Care")
+        else:
+            product.topics.append("Miscellaneous")
+
+    # Fetch reviews for each product
+    product_reviews = {
+        product.id: CommunityPost.objects.filter(product=product, post_type='REVIEW')
+        for product in products
+    }
+
+    # Calculate Carbon Savers Ranking with Levels
+    carbon_ranking = CarbonFootprint.objects.values('product__seller__username').annotate(total_carbon_saved=Sum('carbon_saved_kg')).order_by('-total_carbon_saved')[:5]
+    ranking_list = []
+    for item in carbon_ranking:
+        if not item['product__seller__username']:
+            continue
+        carbon_saved = item['total_carbon_saved'] or 0.0
+        # Determine level based on carbon saved
+        if carbon_saved >= 50:
+            level = "Expert"
+        elif carbon_saved >= 20:
+            level = "Advanced"
+        elif carbon_saved >= 5:
+            level = "Student"
+        else:
+            level = "Basic"
+        # Simulate a description for the user (since User model doesn't have a description field)
+        description = f"Eco-warrior contributing to a greener planet with {carbon_saved:.2f} kg saved!"
+        ranking_list.append({
+            'username': item['product__seller__username'],
+            'carbon_saved': carbon_saved,
+            'description': description,
+            'level': level,
+        })
+
+    context = {
+        'review_form': review_form,
+        'products': products,
+        'product_reviews': product_reviews,
+        'carbon_ranking': ranking_list,
+    }
+    return render(request, 'app1/community.html', context)
 
 # API Views
 class ProductListCreateAPIView(generics.ListCreateAPIView):

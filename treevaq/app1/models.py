@@ -46,3 +46,25 @@ class Blog(models.Model):
 
     def __str__(self):
         return self.title
+    
+class CommunityPost(models.Model):
+    POST_TYPES = (
+        ('PRODUCT_POST', 'Product Post'),
+        ('REVIEW', 'Review/Rating'),
+        ('QUESTION', 'Question'),
+        ('ANSWER', 'Answer'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='community_posts')
+    post_type = models.CharField(max_length=20, choices=POST_TYPES)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='community_posts', null=True, blank=True)
+    content = models.TextField()
+    rating = models.IntegerField(null=True, blank=True, help_text="Rating out of 5 (for reviews only)")
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies', help_text="For answers to questions")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    upvotes = models.IntegerField(default=0)
+    downvotes = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.post_type} - {self.created_at}"

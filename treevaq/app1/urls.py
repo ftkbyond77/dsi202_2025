@@ -46,6 +46,7 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('blog/', views.blog, name='blog'),
     path('blog/<int:article_id>/', views.blog_detail, name='blog_detail'),
+    path('community/', views.community, name='community'),
     
     # API URLs
     path('api/products/', views.ProductListCreateAPIView.as_view(), name='api_product_list_create'),
