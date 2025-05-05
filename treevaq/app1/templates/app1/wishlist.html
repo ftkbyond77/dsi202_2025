@@ -1,0 +1,28 @@
+{% extends 'app1/base.html' %}
+
+{% block title %}Wishlist - Treevaq{% endblock %}
+
+{% block content %}
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Your Wishlist</h1>
+    {% if wishlist %}
+        <ul class="space-y-4">
+            {% for product in wishlist %}
+                <li class="bg-white p-4 rounded-lg shadow-md flex items-center" data-product-id="{{ product.id }}">
+                    <img src="{% if product.image %}{{ product.image.url }}{% else %}https://via.placeholder.com/100x100?text={{ product.name|urlencode }}{% endif %}" alt="{{ product.name }}" class="w-16 h-16 object-cover rounded-lg mr-4">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-800">{{ product.name }}</h3>
+                        <p class="text-gray-700">{{ product.description|truncatechars:50 }}</p>
+                        <p class="text-gray-600">Price: ${{ product.price }}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <a href="{% url 'app1:add_to_cart' product.id %}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Add to Cart</a>
+                        <button onclick="removeFromWishlist({{ product.id }})" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Delete from Wishlist</button>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-gray-600">Your wishlist is empty. Add items from the product pages!</p>
+    {% endif %}
+    <a href="{% url 'app1:view_cart' %}" class="mt-4 inline-block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Go to Cart</a>
+{% endblock %}

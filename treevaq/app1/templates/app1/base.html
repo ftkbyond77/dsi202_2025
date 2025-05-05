@@ -4,28 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Treevaq{% endblock %}</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Custom Styles -->
     <style>
-        body { padding-top: 4rem; }
-        .card-img-top { height: 200px; object-fit: cover; }
-
-        /* Custom Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Light Mode (default) */
+        body {
+            background-color: #f7fafc;
+            color: #2d3748;
+            transition: background-color 0.3s, color 0.3s;
         }
-        .animate-fade-in {
-            animation: fadeIn 1s ease-out forwards;
+        /* Dark Mode */
+        body.dark-mode {
+            background-color: #1a202c;
+            color: #e2e8f0;
         }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        body.dark-mode .bg-white {
+            background-color: #2d3748;
         }
-        .animate-bounce-slow {
-            animation: bounce 2s infinite;
+        body.dark-mode .bg-gray-100 {
+            background-color: #2a2f3a;
+        }
+        body.dark-mode .bg-gray-50 {
+            background-color: #353c48;
+        }
+        body.dark-mode .text-gray-800 {
+            color: #e2e8f0;
+        }
+        body.dark-mode .text-gray-700 {
+            color: #cbd5e0;
+        }
+        body.dark-mode .text-gray-600 {
+            color: #a0aec0;
+        }
+        body.dark-mode .text-green-600 {
+            color: #68d391;
+        }
+        body.dark-mode .text-green-800 {
+            color: #38a169;
+        }
+        body.dark-mode .bg-green-100 {
+            background-color: #2f855a;
+        }
+        body.dark-mode .bg-green-600 {
+            background-color: #276749;
+        }
+        body.dark-mode .hover\:bg-green-700:hover {
+            background-color: #22543d;
+        }
+        body.dark-mode .text-red-600 {
+            color: #fc8181;
+        }
+        body.dark-mode .text-red-700 {
+            color: #e53e3e;
+        }
+        body.dark-mode .bg-red-100 {
+            background-color: #822727;
+        }
+        body.dark-mode img {
+            filter: brightness(0.9); /* Slightly adjust image brightness in dark mode */
+        }
+        /* Navbar Shadow in Dark Mode */
+        body.dark-mode .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06);
+        }
+        /* Dark Mode Styles for Buttons */
+        body.dark-mode .bg-gray-200 {
+            background-color: #4a5568; /* Darker gray for button background */
+        }
+        body.dark-mode .text-gray-800 {
+            color: #e2e8f0; /* Light text for readability */
+        }
+        body.dark-mode .hover\:bg-gray-300:hover {
+            background-color: #718096; /* Lighter gray for hover effect */
+        }
+        body.dark-mode .bg-white {
+            background-color: #2d3748; /* Adjust dropdown background in Dark Mode */
         }
     </style>
+    <!-- Include Alpine.js -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -38,7 +96,13 @@
                 <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:blog' %}">Blog</a>
                 <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:community' %}">Community</a>                
                 <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:dashboard' %}">Dashboard</a>
-                <a class="text-gray-700 hover:text-green-600 relative" href="{% url 'app1:view_cart' %}">
+                <!-- Wishlist Button (left of Cart) -->
+                <a class="text-gray-700 hover:text-green-600 relative" href="#" id="view-wishlist">
+                    Wishlist
+                    <span id="wishlist-count" class="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-green-500 rounded-full -mt-2 -mr-2 hidden"></span>
+                </a>
+                <!-- Cart Button -->
+                <a class="text-gray-700 hover:text-green-600 relative" href="{% url 'app1:view_cart' %}" id="wishlist-to-cart">
                     Cart
                     {% if cart_total > 0 %}
                         <span class="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full -mt-2 -mr-2 animate-fade-in">
@@ -46,14 +110,35 @@
                         </span>
                     {% endif %}
                 </a>
+                <!-- Options Toggle using Alpine.js -->
+                <div x-data="{ isOpen: false }" class="relative">
+                    <button @click="isOpen = !isOpen" class="px-2 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 focus:outline-none transition-colors duration-200">
+                        Options
+                    </button>
+                    <div x-show="isOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10" style="display: none;">
+                        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Sign-in</a>
+                        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a>
+                        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Support</a>
+                        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Sign-out</a>
+                    </div>
+                </div>
+                <!-- Dark Mode Toggle Button -->
+                <button id="dark-mode-toggle" class="px-2 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors duration-200">
+                    Dark Mode
+                </button>
             </div>
         </div>
     </nav>
 
     <!-- Main Content -->
-    <div class="container mx-auto mt-6 px-4">
+    <div class="container mx-auto mt-20 px-4">
         {% block content %}
         {% endblock %}
     </div>
+
+    <!-- JavaScript -->
+    {% load static %}
+    <script src="{% static 'app1/dark-mode.js' %}"></script>
+    <script src="{% static 'app1/wishlist.js' %}"></script>
 </body>
 </html>

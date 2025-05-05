@@ -47,6 +47,9 @@ urlpatterns = [
     path('blog/', views.blog, name='blog'),
     path('blog/<int:article_id>/', views.blog_detail, name='blog_detail'),
     path('community/', views.community, name='community'),
+    path('wishlist/', views.wishlist, name='wishlist'),
+    path('add-to-wishlist/', views.add_to_wishlist, name='add_to_wishlist'),
+    path('remove-from-wishlist/', views.remove_from_wishlist, name='remove_from_wishlist'),
     
     # API URLs
     path('api/products/', views.ProductListCreateAPIView.as_view(), name='api_product_list_create'),

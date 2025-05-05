@@ -13,6 +13,9 @@ from datetime import datetime, timedelta
 from django.contrib import messages
 from .forms import ProductPostForm, ReviewForm, QuestionForm, AnswerForm
 
+import json
+from django.http import JsonResponse
+
 # Template Views
 def home(request):
     return render(request, 'app1/home.html')
@@ -42,6 +45,19 @@ class ProductDetailView(DetailView):
     model = Product
     template_name = 'app1/product_detail.html'
     context_object_name = 'product'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Use the OneToOneField related name: carbon_footprint
+        carbon_footprint = getattr(self.object, 'carbon_footprint', None)
+        if carbon_footprint:
+            total_carbon_saved = carbon_footprint.carbon_saved_kg
+            context['total_carbon_saved'] = total_carbon_saved
+            context['has_carbon_footprints'] = True
+        else:
+            context['total_carbon_saved'] = 0.0
+            context['has_carbon_footprints'] = False
+        return context
 
 @login_required
 def dashboard(request):
@@ -291,6 +307,65 @@ def community(request):
         'carbon_ranking': ranking_list,
     }
     return render(request, 'app1/community.html', context)
+
+@login_required
+def add_to_wishlist(request):
+    if request.method == 'POST':
+        product_id = request.POST.get('product_id')
+        if not product_id:
+            return JsonResponse({'status': 'error', 'message': 'Product ID is required'}, status=400)
+
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Product not found'}, status=404)
+
+        # Get or initialize wishlist from session
+        wishlist = request.session.get('wishlist', [])
+        if product_id not in wishlist:
+            wishlist.append(product_id)
+            request.session['wishlist'] = wishlist
+            return JsonResponse({'status': 'success', 'message': f'Added {product.name} to wishlist!'})
+        else:
+            return JsonResponse({'status': 'info', 'message': f'{product.name} is already in your wishlist!'})
+    elif request.method == 'GET':
+        # Return the current wishlist count for the client
+        wishlist = request.session.get('wishlist', [])
+        return JsonResponse({'wishlist_count': len(wishlist)})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+@login_required
+def remove_from_wishlist(request):
+    if request.method == 'POST':
+        product_id = request.POST.get('product_id')
+        if not product_id:
+            return JsonResponse({'status': 'error', 'message': 'Product ID is required'}, status=400)
+
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Product not found'}, status=404)
+
+        # Get or initialize wishlist from session
+        wishlist = request.session.get('wishlist', [])
+        if product_id in wishlist:
+            wishlist.remove(product_id)
+            request.session['wishlist'] = wishlist
+            return JsonResponse({'status': 'success', 'message': f'Removed {product.name} from wishlist!'})
+        else:
+            return JsonResponse({'status': 'info', 'message': f'{product.name} is not in your wishlist!'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+@login_required
+def wishlist(request):
+    # Get wishlist from session
+    wishlist = request.session.get('wishlist', [])
+    # Fetch product objects for the wishlist
+    products = Product.objects.filter(id__in=wishlist)
+    context = {
+        'wishlist': products,
+    }
+    return render(request, 'app1/wishlist.html', context)
 
 # API Views
 class ProductListCreateAPIView(generics.ListCreateAPIView):
