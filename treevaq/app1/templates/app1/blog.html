@@ -1,6 +1,24 @@
 {% extends 'app1/base.html' %}
+{% load static %}
 
 {% block title %}Blog - Treevaq{% endblock %}
+
+{% block head_placeholder %}
+    <meta name="description" content="Read the latest blog posts on sustainability and eco-friendly living at Treevaq.">
+    <style>
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-8px); /* Increased lift for visibility */
+            box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.2), 0 6px 8px -4px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
+        }
+        /* Adjust for Dark Mode */
+        body.dark-mode .hover-lift:hover {
+            box-shadow: 0 15px 20px -5px rgba(255, 255, 255, 0.2), 0 6px 8px -4px rgba(255, 255, 255, 0.1);
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
 <section class="py-6 bg-gray-100">
@@ -26,7 +44,7 @@
 
         <!-- Featured Article -->
         {% if articles and articles|length > 0 %}
-            <div class="mb-8 bg-white rounded-lg shadow-lg overflow-hidden animate-fade-in">
+            <div class="bg-white rounded-lg shadow-lg hover-lift mb-8">
                 {% with article=articles|first %}
                     <div class="relative">
                         {% if article.image %}
@@ -52,7 +70,7 @@
         <!-- Secondary Articles Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for article in articles|slice:"1:" %}
-                <div class="bg-white rounded-lg shadow-md p-4 animate-fade-in">
+                <div class="bg-white rounded-lg shadow-md p-4 hover-lift">
                     {% if article.image %}
                         <img src="{{ article.image.url }}" class="w-full h-40 object-cover rounded mb-4" alt="{{ article.title }}">
                     {% else %}

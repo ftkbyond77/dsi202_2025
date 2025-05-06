@@ -3,24 +3,41 @@
 
 {% block title %}Dashboard - Treevaq{% endblock %}
 
-{% block content %}
-<h1 class="text-3xl font-bold text-green-600 mb-6">Admin Dashboard</h1>
+{% block head_placeholder %}
+    <meta name="description" content="Admin dashboard for Treevaq, showing key metrics like total products, orders, and revenue over time.">
+    <style>
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Adjust for Dark Mode */
+        body.dark-mode .hover-lift:hover {
+            box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.1), 0 4px 6px -2px rgba(255, 255, 255, 0.05);
+        }
+    </style>
+{% endblock %}
 
-<!-- Overview Section -->
+{% block content %}
+    <h1 class="text-3xl font-bold text-green-600 mb-6">Admin Dashboard</h1>
+
+    <!-- Overview Section -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <div class="bg-white p-4 rounded-lg shadow-md">
+        <div class="bg-white p-4 rounded-lg shadow-md hover-lift">
             <h2 class="text-lg font-semibold text-green-800">Total Products</h2>
             <p class="text-2xl text-green-700">{{ total_products }}</p>
         </div>
-        <div class="bg-white p-4 rounded-lg shadow-md">
+        <div class="bg-white p-4 rounded-lg shadow-md hover-lift">
             <h2 class="text-lg font-semibold text-green-800">Sustainable Products</h2>
             <p class="text-2xl text-green-700">{{ sustainable_products }}</p>
         </div>
-        <div class="bg-white p-4 rounded-lg shadow-md">
+        <div class="bg-white p-4 rounded-lg shadow-md hover-lift">
             <h2 class="text-lg font-semibold text-green-800">Total Carbon Saved</h2>
             <p class="text-2xl text-green-700">{{ total_carbon_saved }} kg</p>
         </div>
-        <div class="bg-white p-4 rounded-lg shadow-md">
+        <div class="bg-white p-4 rounded-lg shadow-md hover-lift">
             <h2 class="text-lg font-semibold text-green-800">Average Product Price</h2>
             <p class="text-2xl text-green-700">${{ average_price }}</p>
         </div>
@@ -29,17 +46,17 @@
     <!-- Charts Section -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <!-- Products Per Seller Chart -->
-        <div class="bg-white p-4 rounded-lg shadow-md">
+        <div class="bg-white p-4 rounded-lg shadow-md hover-lift">
             <h2 class="text-lg font-semibold text-green-800 mb-4">Products Per Seller</h2>
             <canvas id="productsPerSellerChart" height="200"></canvas>
         </div>
         <!-- Top Products by Revenue Chart -->
-        <div class="bg-white p-4 rounded-lg shadow-md">
+        <div class="bg-white p-4 rounded-lg shadow-md hover-lift">
             <h2 class="text-lg font-semibold text-green-800 mb-4">Top Products by Revenue</h2>
             <canvas id="topProductsChart" height="200"></canvas>
         </div>
         <!-- New Line Chart: Orders and Revenue Over Time -->
-        <div class="bg-white p-4 rounded-lg shadow-md lg:col-span-2">
+        <div class="bg-white p-4 rounded-lg shadow-md hover-lift lg:col-span-2">
             <h2 class="text-lg font-semibold text-green-800 mb-4">Orders and Revenue Over Time</h2>
             <canvas id="ordersRevenueChart" height="200"></canvas>
         </div>
@@ -47,29 +64,29 @@
 
     <!-- Additional Stats -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-        <div class="bg-white p-4 rounded-lg shadow-md">
+        <div class="bg-white p-4 rounded-lg shadow-md hover-lift">
             <h2 class="text-lg font-semibold text-green-800">Total Users</h2>
             <p class="text-2xl text-green-700">{{ total_users }}</p>
         </div>
-        <div class="bg-white p-4 rounded-lg shadow-md">
+        <div class="bg-white p-4 rounded-lg shadow-md hover-lift">
             <h2 class="text-lg font-semibold text-green-800">Active Users (Last 30 Days)</h2>
             <p class="text-2xl text-green-700">{{ active_users }} ({{ active_percentage }}%)</p>
         </div>
-        <div class="bg-white p-4 rounded-lg shadow-md">
+        <div class="bg-white p-4 rounded-lg shadow-md hover-lift">
             <h2 class="text-lg font-semibold text-green-800">Products Per User</h2>
             <p class="text-2xl text-green-700">{{ products_per_user }}</p>
         </div>
     </div>
 
     <!-- Carbon Impact -->
-    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+    <div class="bg-white p-4 rounded-lg shadow-md hover-lift mb-6">
         <h2 class="text-lg font-semibold text-green-800 mb-2">Carbon Impact</h2>
         <p class="text-green-700">Equivalent to planting <span class="font-semibold">{{ carbon_equivalent_trees }}</span> trees.</p>
         <p class="text-green-700">Equivalent to removing <span class="font-semibold">{{ carbon_equivalent_cars }}</span> cars from the road for a year.</p>
     </div>
 
     <!-- Recent Orders -->
-    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+    <div class="bg-white p-4 rounded-lg shadow-md hover-lift mb-6">
         <h2 class="text-lg font-semibold text-green-800 mb-4">Recent Orders</h2>
         <table class="min-w-full bg-white">
             <thead>
@@ -96,7 +113,7 @@
     </div>
 
     <!-- Top Products -->
-    <div class="bg-white p-4 rounded-lg shadow-md">
+    <div class="bg-white p-4 rounded-lg shadow-md hover-lift">
         <h2 class="text-lg font-semibold text-green-800 mb-4">Top Products</h2>
         <table class="min-w-full bg-white">
             <thead>

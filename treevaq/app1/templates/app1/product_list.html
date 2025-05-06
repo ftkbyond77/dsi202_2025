@@ -1,6 +1,24 @@
 {% extends 'app1/base.html' %}
+{% load static %}
 
 {% block title %}Products - Treevaq{% endblock %}
+
+{% block head_placeholder %}
+    <meta name="description" content="Explore sustainable products on Treevaq.">
+    <style>
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-8px); /* Increased lift for visibility */
+            box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.2), 0 6px 8px -4px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
+        }
+        /* Adjust for Dark Mode */
+        body.dark-mode .hover-lift:hover {
+            box-shadow: 0 15px 20px -5px rgba(255, 255, 255, 0.2), 0 6px 8px -4px rgba(255, 255, 255, 0.1);
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
 <h2 class="text-2xl font-semibold text-gray-800 mb-6 animate-fade-in">Our Sustainable Products</h2>
@@ -16,7 +34,7 @@
 <!-- Product List -->
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
     {% for product in products %}
-    <div class="flex flex-col bg-white rounded-lg shadow-lg overflow-hidden animate-fade-in h-full">
+    <div class="flex flex-col bg-white rounded-lg shadow-lg hover-lift h-full">
         {% if product.image %}
             <img src="{{ product.image.url }}" class="w-full h-48 object-cover" alt="{{ product.name }}">
         {% else %}
