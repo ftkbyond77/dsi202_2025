@@ -6,6 +6,8 @@
     <title>{% block title %}Treevaq{% endblock %}</title>
     <!-- Tailwind CSS via CDN -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <!-- Custom Styles -->
     <style>
         /* Light Mode (default) */
@@ -38,19 +40,19 @@
             color: #a0aec0;
         }
         body.dark-mode .text-green-600 {
-            color: #68d391;
+            color: #68d391; /* Lighter green in Dark Mode */
         }
         body.dark-mode .text-green-800 {
-            color: #38a169;
+            color: #38a169; /* Darker green in Dark Mode */
         }
         body.dark-mode .bg-green-100 {
-            background-color: #2f855a;
+            background-color: #2f855a; /* Dark green in Dark Mode */
         }
         body.dark-mode .bg-green-600 {
-            background-color: #276749;
+            background-color: #276749; /* Darker green background */
         }
         body.dark-mode .hover\:bg-green-700:hover {
-            background-color: #22543d;
+            background-color: #22543d; /* Even darker green on hover */
         }
         body.dark-mode .text-red-600 {
             color: #fc8181;
@@ -80,6 +82,16 @@
         }
         body.dark-mode .bg-white {
             background-color: #2d3748; /* Adjust dropdown background in Dark Mode */
+        }
+        /* Green Theme Adjustments for Dark Mode */
+        body.dark-mode .bg-green-50 {
+            background-color: #276749; /* Dark green background */
+        }
+        body.dark-mode .bg-green-200 {
+            background-color: #38a169; /* Medium green background */
+        }
+        body.dark-mode .hover\:bg-green-300:hover {
+            background-color: #68d391; /* Lighter green on hover */
         }
     </style>
     <!-- Include Alpine.js -->
