@@ -51,6 +51,8 @@ urlpatterns = [
     path('add-to-wishlist/', views.add_to_wishlist, name='add_to_wishlist'),
     path('remove-from-wishlist/', views.remove_from_wishlist, name='remove_from_wishlist'),
     
+    path('signup/', views.SignupView.as_view(), name='signup'),
+    
     # API URLs
     path('api/products/', views.ProductListCreateAPIView.as_view(), name='api_product_list_create'),
     path('api/products/<int:pk>/', views.ProductRetrieveUpdateAPIView.as_view(), name='api_product_retrieve_update'),

@@ -39,10 +39,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('app1.urls')),  # Includes app1 URLs (both template and API)
+    path('auth/', include('social_django.urls', namespace='social')),
+    path('login/', LoginView.as_view(template_name='app1/login.html'), name='login'),
+    path('logout/', LogoutView.as_view(template_name='app1/logout.html'), name='logout'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

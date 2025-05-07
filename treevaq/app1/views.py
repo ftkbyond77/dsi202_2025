@@ -15,6 +15,38 @@ from .forms import ProductPostForm, ReviewForm, QuestionForm, AnswerForm
 
 import json
 from django.http import JsonResponse
+from django.urls import reverse_lazy
+from django.contrib.auth.forms import UserCreationForm
+from django.views import generic
+
+class SignupView(generic.CreateView):
+    form_class = UserCreationForm
+    success_url = reverse_lazy('login')
+    template_name = 'app1/signup.html'
+
+def home(request):
+    return render(request, 'app1/home.html')
+
+def product_list(request):
+    return render(request, 'app1/product_list.html')
+
+def blog(request):
+    return render(request, 'app1/blog.html')
+
+def community(request):
+    return render(request, 'app1/community.html')
+
+def dashboard(request):
+    return render(request, 'app1/dashboard.html')
+
+def view_cart(request):
+    return render(request, 'app1/cart.html')
+
+def product_detail(request, pk):
+    return render(request, 'app1/product_detail.html')
+
+def blog_detail(request, pk):
+    return render(request, 'app1/blog_detail.html')
 
 # Template Views
 def home(request):

@@ -1,0 +1,44 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block title %}Login - Treevaq{% endblock %}
+
+{% block head_placeholder %}
+    <meta name="description" content="Log in to Treevaq with your account or Google.">
+{% endblock %}
+
+{% block content %}
+    <section class="py-12 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h1 class="text-3xl font-bold text-green-800 mb-6 text-center">Log In to Treevaq</h1>
+
+            <!-- Login Form -->
+            <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label for="id_username" class="block text-sm font-medium text-gray-700">Username or Email</label>
+                        <input type="text" name="username" id="id_username" required class="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label for="id_password" class="block text-sm font-medium text-gray-700">Password</label>
+                        <input type="password" name="password" id="id_password" required class="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    {% if form.errors %}
+                        <p class="text-red-600 text-sm">Invalid username or password.</p>
+                    {% endif %}
+                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">Log In</button>
+                </form>
+                <p class="mt-4 text-center text-gray-600">Don't have an account? <a href="{% url 'app1:signup' %}" class="text-green-600 hover:text-green-800">Sign Up</a></p>
+            </div>
+
+            <!-- Google OAuth2 Login -->
+            <div class="max-w-md mx-auto mt-6 text-center">
+                <p class="text-gray-600 mb-4">Or log in with:</p>
+                <a href="{% url 'social:begin' 'google-oauth2' %}" class="inline-block bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition">
+                    <i class="fab fa-google"></i> Log in with Google
+                </a>
+            </div>
+        </div>
+    </section>
+{% endblock %}

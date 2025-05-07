@@ -1,0 +1,28 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block title %}Sign Up - Treevaq{% endblock %}
+
+{% block head_placeholder %}
+    <meta name="description" content="Sign up for a Treevaq account to start shopping sustainably.">
+{% endblock %}
+
+{% block content %}
+    <section class="py-12 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h1 class="text-3xl font-bold text-green-800 mb-6 text-center">Sign Up for Treevaq</h1>
+            <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    {% if form.errors %}
+                        <p class="text-red-600 text-sm">Please correct the errors below.</p>
+                        {{ form.non_field_errors }}
+                    {% endif %}
+                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">Sign Up</button>
+                </form>
+                <p class="mt-4 text-center text-gray-600">Already have an account? <a href="{% url 'login' %}" class="text-green-600 hover:text-green-800">Log In</a></p>
+            </div>
+        </div>
+    </section>
+{% endblock %}

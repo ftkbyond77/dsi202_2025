@@ -4,6 +4,8 @@ services:
   db:
     image: postgres:14
     container_name: postgres
+    env_file:
+      - .env
     volumes:
       - db_data:/var/lib/postgresql/data
     environment:
@@ -20,6 +22,8 @@ services:
       dockerfile: Dockerfile.django
     image: treevaq_django:latest
     container_name: django
+    env_file:
+      - .env
     volumes:
       - .:/usr/src/app:rw
     ports:
@@ -40,6 +44,8 @@ services:
       dockerfile: Dockerfile.jupyter
     image: treevaq_jupyter:latest
     container_name: jupyter
+    env_file:
+      - .env
     volumes:
       - .:/usr/src/app:rw
     ports:
