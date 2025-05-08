@@ -4,25 +4,96 @@
 {% block title %}Sign Up - Treevaq{% endblock %}
 
 {% block head_placeholder %}
-    <meta name="description" content="Sign up for a Treevaq account to start shopping sustainably.">
+    <meta name="description" content="Sign up for Treevaq to start shopping for eco-friendly products, join our community, and more!">
+    <!-- GSAP for subtle animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 {% endblock %}
 
 {% block content %}
+    <!-- Promotional Banner -->
+    <section class="bg-green-100 py-6 text-center">
+        <div class="container mx-auto px-4">
+            <h1 class="text-3xl font-bold text-green-800 mb-2 animate-fade-in">Join Treevaq Today!</h1>
+            <p class="text-lg text-green-700">Sign up now and get 10% off your first purchase!</p>
+        </div>
+    </section>
+
+    <!-- Sign-Up Form Section -->
     <section class="py-12 bg-gray-50">
         <div class="container mx-auto px-4">
-            <h1 class="text-3xl font-bold text-green-800 mb-6 text-center">Sign Up for Treevaq</h1>
-            <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
-                <form method="post" class="space-y-4">
+            <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg animate-slide-up">
+                <h2 class="text-2xl font-bold text-green-800 mb-6 text-center">Create Your Account</h2>
+                
+                <!-- Sign-Up Form -->
+                <form method="post" class="space-y-6">
                     {% csrf_token %}
-                    {{ form.as_p }}
+                    <!-- Username -->
+                    <div>
+                        <label for="id_username" class="block text-sm font-medium text-gray-700">Username</label>
+                        <input type="text" name="username" id="id_username" required class="mt-1 block w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200">
+                    </div>
+                    <!-- Password -->
+                    <div>
+                        <label for="id_password1" class="block text-sm font-medium text-gray-700">Password</label>
+                        <input type="password" name="password1" id="id_password1" required class="mt-1 block w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200">
+                    </div>
+                    <!-- Confirm Password -->
+                    <div>
+                        <label for="id_password2" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                        <input type="password" name="password2" id="id_password2" required class="mt-1 block w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200">
+                    </div>
+                    <!-- Form Errors -->
                     {% if form.errors %}
-                        <p class="text-red-600 text-sm">Please correct the errors below.</p>
-                        {{ form.non_field_errors }}
+                        <div class="text-red-600 text-sm">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
                     {% endif %}
-                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">Sign Up</button>
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200">Sign Up</button>
                 </form>
-                <p class="mt-4 text-center text-gray-600">Already have an account? <a href="{% url 'login' %}" class="text-green-600 hover:text-green-800">Log In</a></p>
+
+                <!-- Social Sign-Up (Google) -->
+                <div class="mt-6 text-center">
+                    <p class="text-gray-600 mb-4">Or sign up with:</p>
+                    <a href="{% url 'social:begin' 'google-oauth2' %}" class="inline-block bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-200">
+                        <i class="fab fa-google mr-2"></i> Sign Up with Google
+                    </a>
+                </div>
+
+                <!-- Already Have an Account? -->
+                <p class="mt-6 text-center text-gray-600">
+                    Already have an account? <a href="{% url 'login' %}" class="text-green-600 hover:text-green-800">Sign In</a>
+                </p>
             </div>
         </div>
     </section>
+
+    <!-- JavaScript for Animations -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Animate the banner
+            gsap.from('.animate-fade-in', {
+                opacity: 0,
+                duration: 1,
+                delay: 0.5,
+                ease: 'power2.out'
+            });
+
+            // Animate the form container
+            gsap.from('.animate-slide-up', {
+                opacity: 0,
+                y: 50,
+                duration: 0.8,
+                delay: 0.8,
+                ease: 'power2.out'
+            });
+        });
+    </script>
 {% endblock %}
