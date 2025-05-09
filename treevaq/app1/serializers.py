@@ -1,5 +1,23 @@
 from rest_framework import serializers
-from .models import Product, CarbonFootprint
+from .models import UserProfile, Order, Product, CarbonFootprint
+from django.contrib.auth.models import User
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['profile_photo']
+
+class UserSerializer(serializers.ModelSerializer):
+    profile = UserProfileSerializer(required=False)  # Allow null profile
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'date_joined', 'profile']
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['id', 'order_date', 'total', 'status']
 
 class CarbonFootprintSerializer(serializers.ModelSerializer):
     class Meta:

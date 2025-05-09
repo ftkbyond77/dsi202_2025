@@ -1,0 +1,270 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block title %}My Account - Treevaq{% endblock %}
+
+{% block content %}
+    <section class="py-12 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h1 className="text-3xl font-bold text-green-800 mb-6 text-center">My Account</h1>
+            <div id="account-root"></div>
+        </div>
+    </section>
+
+    <!-- React and Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.4/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+    
+    <!-- React App -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function AccountApp() {
+            const [user, setUser] = useState(null);
+            const [photo, setPhoto] = useState(null);
+            const [passwordForm, setPasswordForm] = useState({
+                old_password: '',
+                new_password1: '',
+                new_password2: ''
+            });
+            const [orders, setOrders] = useState([]);
+            const [errorMessage, setErrorMessage] = useState('');
+            const [isLoading, setIsLoading] = useState(true);
+
+            // Fetch user data and orders on mount
+            useEffect(() => {
+                console.log('Starting data fetch...');
+                axios.get('/api/user/', {
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    withCredentials: true
+                })
+                .then(response => {
+                    console.log('User Data Received:', response.data);
+                    setUser(response.data);
+                })
+                .catch(error => {
+                    console.error('User Fetch Error:', error.response ? error.response.data : error.message);
+                    setErrorMessage(`User Fetch Error: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
+                })
+                .finally(() => {
+                    console.log('User fetch completed, setting isLoading to false');
+                    setIsLoading(false);
+                });
+
+                axios.get('/api/order-history/', {
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    withCredentials: true
+                })
+                .then(response => {
+                    console.log('Order Data Received:', response.data);
+                    setOrders(response.data);
+                })
+                .catch(error => {
+                    console.error('Order Fetch Error:', error.response ? error.response.data : error.message);
+                    setErrorMessage(`Order Fetch Error: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
+                });
+            }, []);
+
+            // Handle photo upload
+            const handlePhotoChange = (e) => {
+                setPhoto(e.target.files[0]);
+            };
+
+            const handlePhotoUpload = () => {
+                const formData = new FormData();
+                formData.append('profile_photo', photo);
+                axios.post('/api/user/', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    withCredentials: true
+                })
+                .then(response => {
+                    setUser(response.data);
+                    setErrorMessage('Profile photo updated successfully!');
+                })
+                .catch(error => {
+                    setErrorMessage('Error uploading photo.');
+                    console.error(error);
+                });
+            };
+
+            // Handle password change
+            const handlePasswordChange = (e) => {
+                setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
+            };
+
+            const handlePasswordSubmit = (e) => {
+                e.preventDefault();
+                axios.post('/api/change-password/', passwordForm, {
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    withCredentials: true
+                })
+                .then(response => setErrorMessage(response.data.message))
+                .catch(error => setErrorMessage(error.response.data.old_password || 'Error changing password.'));
+            };
+
+            // Utility to get CSRF token
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue || '';
+            }
+
+            console.log('Render State:', { user, isLoading, errorMessage, orders });
+
+            if (isLoading) {
+                return <div className="text-center text-gray-600">Loading...</div>;
+            }
+
+            if (!user) {
+                return <div className="text-center text-red-600">{errorMessage || 'User data not available.'}</div>;
+            }
+
+            return (
+                <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+                    {errorMessage && (
+                        <div className={`text-center p-3 mb-4 rounded-lg ${errorMessage.includes('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                            {errorMessage}
+                        </div>
+                    )}
+
+                    {/* Profile Photo Section */}
+                    <div className="relative flex flex-col items-center mb-8">
+                        <div className="relative group">
+                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                                <img
+                                    src={user.profile?.profile_photo || 'https://via.placeholder.com/150'}
+                                    alt="Profile"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            <label
+                                htmlFor="photo-upload"
+                                className="absolute inset-0 rounded-full flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 cursor-pointer"
+                            >
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-8 w-8 text-white"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span className="text-white text-sm font-medium mt-1">Change photo</span>
+                                </div>
+                            </label>
+                            <input
+                                id="photo-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handlePhotoChange}
+                                className="hidden"
+                            />
+                        </div>
+                        {photo && (
+                            <button
+                                onClick={handlePhotoUpload}
+                                className="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition duration-200 text-sm font-medium"
+                            >
+                                Update Profile
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Basic Information */}
+                    <div className="mb-8">
+                        <h2 className="text-xl font-bold text-green-800 mb-4">Basic Information</h2>
+                        <p className="text-gray-700"><strong>Username:</strong> {user.username}</p>
+                        <p className="text-gray-700"><strong>Email:</strong> {user.email}</p>
+                        <p className="text-gray-700"><strong>Joined:</strong> {new Date(user.date_joined).toLocaleDateString()}</p>
+                    </div>
+
+                    {/* Change Password */}
+                    <div className="mb-8">
+                        <h2 className="text-xl font-bold text-green-800 mb-4">Change Password</h2>
+                        <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                            <div>
+                                <label htmlFor="old_password" className="block text-sm font-medium text-gray-700">Current Password</label>
+                                <input
+                                    type="password"
+                                    name="old_password"
+                                    value={passwordForm.old_password}
+                                    onChange={handlePasswordChange}
+                                    required
+                                    className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="new_password1" className="block text-sm font-medium text-gray-700">New Password</label>
+                                <input
+                                    type="password"
+                                    name="new_password1"
+                                    value={passwordForm.new_password1}
+                                    onChange={handlePasswordChange}
+                                    required
+                                    className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="new_password2" className="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                                <input
+                                    type="password"
+                                    name="new_password2"
+                                    value={passwordForm.new_password2}
+                                    onChange={handlePasswordChange}
+                                    required
+                                    className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-200"
+                            >
+                                Change Password
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Order History */}
+                    <div>
+                        <h2 className="text-xl font-bold text-green-800 mb-4">Order History</h2>
+                        {orders.length > 0 ? (
+                            <div className="space-y-4">
+                                {orders.map(order => (
+                                    <div key={order.id} className="border p-4 rounded-lg">
+                                        <p className="text-gray-700"><strong>Order ID:</strong> {order.id}</p>
+                                        <p className="text-gray-700"><strong>Date:</strong> {new Date(order.order_date).toLocaleString()}</p>
+                                        <p className="text-gray-700"><strong>Total:</strong> ${order.total}</p>
+                                        <p className="text-gray-700"><strong>Status:</strong> {order.status}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-600">No orders found.</p>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the React app
+        ReactDOM.render(<AccountApp />, document.getElementById('account-root'));
+    </script>
+{% endblock %}

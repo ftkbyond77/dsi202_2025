@@ -11,3 +11,4 @@ Pillow
 djangorestframework
 social-auth-app-django
 python-dotenv
+django-cors-headers

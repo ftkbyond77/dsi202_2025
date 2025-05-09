@@ -1,29 +1,3 @@
-# from django.urls import path
-# from . import views
-
-# app_name = 'app1'  # Namespace should match the app name
-
-# urlpatterns = [
-#     path('', views.home, name='home'),
-#     path('products/', views.ProductListView.as_view(), name='product_list'),
-#     path('products/<int:pk>/', views.ProductDetailView.as_view(), name='product_detail'),
-# ]
-
-# from django.urls import path
-# from . import views
-
-# app_name = 'app1'
-
-# urlpatterns = [
-#     # Template URLs
-#     path('', views.home, name='home'),
-#     path('products/', views.ProductListView.as_view(), name='product_list'),
-#     path('products/<int:pk>/', views.ProductDetailView.as_view(), name='product_detail'),
-#     # API URLs
-#     path('api/products/', views.ProductListCreateAPIView.as_view(), name='api_product_list_create'),
-#     path('api/products/<int:pk>/', views.ProductRetrieveUpdateAPIView.as_view(), name='api_product_retrieve_update'),
-# ]
-
 from django.urls import path
 from . import views
 
@@ -52,8 +26,13 @@ urlpatterns = [
     path('remove-from-wishlist/', views.remove_from_wishlist, name='remove_from_wishlist'),
     
     path('signup/', views.SignupView.as_view(), name='signup'),
+    path('account/', views.account_view, name='account'),
     
     # API URLs
     path('api/products/', views.ProductListCreateAPIView.as_view(), name='api_product_list_create'),
     path('api/products/<int:pk>/', views.ProductRetrieveUpdateAPIView.as_view(), name='api_product_retrieve_update'),
+    
+    path('api/user/', views.UserProfileView.as_view(), name='user_profile_api'),
+    path('api/change-password/', views.ChangePasswordView.as_view(), name='change_password_api'),
+    path('api/order-history/', views.OrderHistoryView.as_view(), name='order_history_api'),
 ]

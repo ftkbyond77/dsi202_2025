@@ -1,5 +1,15 @@
 from django.contrib import admin
-from .models import Product, CarbonFootprint, Blog, CommunityPost
+from .models import UserProfile, Order, Product, CarbonFootprint, Blog, CommunityPost
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ['user', 'profile_photo']
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'order_date', 'total', 'status']
+    list_filter = ['status', 'order_date']
+    search_fields = ['user__username']
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):

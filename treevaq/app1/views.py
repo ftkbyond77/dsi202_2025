@@ -19,6 +19,15 @@ from django.urls import reverse_lazy
 from django.contrib.auth.forms import UserCreationForm
 from django.views import generic
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+from .serializers import UserSerializer, OrderSerializer
+from rest_framework.permissions import IsAuthenticated
+from django.core.exceptions import ObjectDoesNotExist
+
 class SignupView(generic.CreateView):
     form_class = UserCreationForm
     success_url = reverse_lazy('login')
@@ -51,6 +60,53 @@ def blog_detail(request, pk):
 # Template Views
 def home(request):
     return render(request, 'app1/home.html')
+
+
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            serializer = UserSerializer(request.user)
+            return Response(serializer.data)
+        except ObjectDoesNotExist as e:
+            return Response({'error': 'User profile not found. Please contact support.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        user_profile = request.user.profile
+        if 'profile_photo' in request.FILES:
+            user_profile.profile_photo = request.FILES['profile_photo']
+            user_profile.save()
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        form = PasswordChangeForm(user=request.user, data=request.data)
+        if form.is_valid():
+            form.save()
+            update_session_auth_hash(request, form.user)
+            return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
+        return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class OrderHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            orders = request.user.orders.all().order_by('-order_date')
+            serializer = OrderSerializer(orders, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': f'Failed to fetch orders: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@login_required
+def account_view(request):
+    return render(request, 'app1/account.html')
 
 class ProductListView(ListView):
     model = Product

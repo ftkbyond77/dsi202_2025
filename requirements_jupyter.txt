@@ -8,3 +8,4 @@ traitlets==5.1.1
 djangorestframework
 social-auth-app-django
 python-dotenv
+django-cors-headers
