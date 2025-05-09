@@ -36,7 +36,8 @@
             // Fetch user data and orders on mount
             useEffect(() => {
                 console.log('Starting data fetch...');
-                axios.get('/api/user/', {
+                // แก้ไขจาก '/api/user/' เป็น '/api/user/profile/'
+                axios.get('/api/user/profile/', {
                     headers: { 'X-CSRFToken': getCookie('csrftoken') },
                     withCredentials: true
                 })
@@ -53,7 +54,8 @@
                     setIsLoading(false);
                 });
 
-                axios.get('/api/order-history/', {
+                // แก้ไขจาก '/api/order-history/' เป็น '/api/user/orders/'
+                axios.get('/api/user/orders/', {
                     headers: { 'X-CSRFToken': getCookie('csrftoken') },
                     withCredentials: true
                 })
@@ -75,7 +77,8 @@
             const handlePhotoUpload = () => {
                 const formData = new FormData();
                 formData.append('profile_photo', photo);
-                axios.post('/api/user/', formData, {
+                // แก้ไขจาก '/api/user/' เป็น '/api/user/profile/'
+                axios.post('/api/user/profile/', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                         'X-CSRFToken': getCookie('csrftoken')
@@ -99,7 +102,7 @@
 
             const handlePasswordSubmit = (e) => {
                 e.preventDefault();
-                axios.post('/api/change-password/', passwordForm, {
+                axios.post('/api/user/change-password/', passwordForm, {
                     headers: { 'X-CSRFToken': getCookie('csrftoken') },
                     withCredentials: true
                 })

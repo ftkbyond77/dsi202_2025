@@ -1,0 +1,22 @@
+[
+{
+  "model": "app1.communitycategory",
+  "pk": 1,
+  "fields": {
+    "name": "ทั่วไป",
+    "slug": "general",
+    "description": "หมวดหมู่ทั่วไปสำหรับโพสต์ทั้งหมด",
+    "created_at": "2025-05-09T17:09:33.717Z"
+  }
+},
+{
+  "model": "app1.communitycategory",
+  "pk": 2,
+  "fields": {
+    "name": "General",
+    "slug": "",
+    "description": "General discussions",
+    "created_at": "2025-05-09T21:59:56.121Z"
+  }
+}
+]

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import models
 from django.views.generic import ListView, DetailView
-from .models import Product, CarbonFootprint, Blog, CommunityPost, User, PostLike, Comment, CommunityCategory
+from .models import Product, CarbonFootprint, Blog, CommunityPost, User, PostLike, Comment, CommunityCategory, Review
 from django.db.models import Q, Sum, Avg, Count
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test, login_required
@@ -25,6 +25,10 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
+
+from .models import CommunityPost, CommunityCategory, PostLike, Comment, Review
+import traceback
+
 
 class SignupView(generic.CreateView):
     form_class = UserCreationForm
@@ -372,7 +376,6 @@ def blog_detail(request, article_id):
     context = {'article': article}
     return render(request, 'app1/blog_details.html', context)
 
-# API view to fetch and create community posts
 @api_view(['GET', 'POST'])
 @login_required
 def get_community_posts(request):
@@ -385,26 +388,36 @@ def get_community_posts(request):
                 'title': post.title,
                 'content': post.content,
                 'timestamp': post.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-                'likes': getattr(post, 'likes_count', 0),
-                'comments': getattr(post, 'comments_count', 0),
+                'likes': post.likes.count(),
+                'comments': post.comments.count(),
                 'category': post.category.name if post.category else 'Uncategorized',
-                'image': post.image.url if hasattr(post, 'image') and post.image else None,
+                'image': post.image.url if post.image else None,
                 'is_owner': post.user == request.user
             } for post in posts]
             return Response(data)
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+    
     elif request.method == 'POST':
         try:
-            title = request.POST.get('title')
-            content = request.POST.get('content')
-            category_id = request.POST.get('category_id')  # รับ category_id แทน category
+            data = request.data
+            title = data.get('title')
+            content = data.get('content')
+            category_name = data.get('category')
             image = request.FILES.get('image')
 
-            if not title or not content or not category_id:
+            if not title or not content or not category_name:
                 return Response({'error': 'Title, content, and category are required'}, status=400)
 
-            category = get_object_or_404(CommunityCategory, id=category_id)  # Query instance จาก category_id
+            # แก้ไขส่วนนี้ - ใช้ iexact สำหรับไม่สนใจตัวพิมพ์เล็กใหญ่
+            try:
+                category = CommunityCategory.objects.get(name__iexact=category_name.strip())
+            except CommunityCategory.DoesNotExist:
+                available_categories = list(CommunityCategory.objects.values_list('name', flat=True))
+                return Response({
+                    'error': f'Invalid category "{category_name}". Available categories: {available_categories}'
+                }, status=400)
+            
             post = CommunityPost.objects.create(
                 user=request.user,
                 title=title,
@@ -412,21 +425,78 @@ def get_community_posts(request):
                 category=category,
                 image=image
             )
-            data = {
+            
+            return Response({
                 'id': post.id,
-                'username': post.user.username if post.user else 'Anonymous',
+                'username': post.user.username,
                 'title': post.title,
                 'content': post.content,
                 'timestamp': post.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-                'likes': getattr(post, 'likes_count', 0),
-                'comments': getattr(post, 'comments_count', 0),
-                'category': post.category.name if post.category else 'Uncategorized',
-                'image': post.image.url if hasattr(post, 'image') and post.image else None,
+                'likes': post.likes.count(),
+                'comments': post.comments.count(),
+                'category': post.category.name,
+                'image': post.image.url if post.image else None,
                 'is_owner': True
-            }
-            return Response(data, status=201)
+            }, status=201)
+            
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+@login_required
+def create_review(request):
+    try:
+        data = request.data
+        product_id = data.get('product_id')
+        rating = data.get('rating')
+        content = data.get('content')
+
+        if not all([product_id, rating, content]):
+            return Response({'error': 'Product ID, rating and content are required'}, status=400)
+
+        product = get_object_or_404(Product, id=product_id)
+        
+        # ตรวจสอบว่าเคยรีวิวไปแล้วหรือไม่
+        existing_review = Review.objects.filter(user=request.user, product=product).first()
+        if existing_review:
+            return Response({'error': 'You have already reviewed this product'}, status=400)
+
+        review = Review.objects.create(
+            user=request.user,
+            product=product,
+            rating=rating,
+            content=content
+        )
+
+        return Response({
+            'status': 'success',
+            'review_id': review.id,
+            'rating': review.rating,
+            'content': review.content,
+            'created_at': review.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        }, status=201)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+    
+@api_view(['GET'])
+def get_product_reviews(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    reviews = Review.objects.filter(product=product, is_active=True).order_by('-created_at')
+    
+    data = [{
+        'id': review.id,
+        'user': {
+            'username': review.user.username,
+            'profile_photo': review.user.profile.profile_photo.url if hasattr(review.user, 'profile') and review.user.profile.profile_photo else None
+        },
+        'rating': review.rating,
+        'content': review.content,
+        'created_at': review.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        'is_owner': review.user == request.user
+    } for review in reviews]
+    
+    return Response(data)
 
 @login_required
 @require_POST
@@ -573,14 +643,15 @@ def get_post_details(request, post_id):
         'comments': comments_data
     })
 
+@api_view(['GET'])
 def get_categories(request):
     categories = CommunityCategory.objects.all()
-    return JsonResponse({
-        'categories': [
-            {'id': category.id, 'name': category.name}
-            for category in categories
-        ]
-    })
+    data = [{
+        'id': cat.id,
+        'name': cat.name,
+        'description': cat.description
+    } for cat in categories]
+    return Response(data)
 
 @login_required
 def add_to_wishlist(request):

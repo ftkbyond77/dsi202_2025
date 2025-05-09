@@ -1,4 +1,4 @@
-// Create a new file: app1/static/app1/community.js
+// app1/static/app1/community.js
 
 // CSRF token setup for Ajax requests
 function getCookie(name) {
@@ -16,100 +16,157 @@ function getCookie(name) {
     return cookieValue;
 }
 
-function Community() {
-  const [posts, setPosts] = React.useState([]);
-  // ... state อื่นๆ คงเดิม
+// Main Community Component
+function CommunityApp() {
+    const [posts, setPosts] = React.useState([]);
+    const [categories, setCategories] = React.useState([]);
+    const [selectedCategory, setSelectedCategory] = React.useState('');
+    const [isLoading, setIsLoading] = React.useState(true);
+    const [error, setError] = React.useState(null);
 
-  React.useEffect(() => {
-    fetch('/api/community/posts/')
-      .then(response => response.json())
-      .then(data => {
-        console.log('Posts fetched:', data);
-        setPosts(data);
-      })
-      .catch(error => console.error('Error fetching posts:', error));
-  }, []);
+    // Fetch posts and categories on component mount
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Fetch categories first
+                const categoriesResponse = await fetch('/api/categories/');
+                if (!categoriesResponse.ok) throw new Error('Failed to load categories');
+                const categoriesData = await categoriesResponse.json();
+                setCategories(categoriesData);
 
-  // ... คงโค้ดอื่นๆ ไว้
+                // Then fetch posts
+                const postsResponse = await fetch('/api/community/posts/');
+                if (!postsResponse.ok) throw new Error('Failed to load posts');
+                const postsData = await postsResponse.json();
+                setPosts(postsData);
+
+            } catch (err) {
+                console.error('Error:', err);
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    // Handle form submission
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        
+        // Validate category selection
+        if (!selectedCategory) {
+            alert('กรุณาเลือกหมวดหมู่');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/community/posts/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Failed to create post');
+
+            // Add new post to the list
+            setPosts([data, ...posts]);
+            e.target.reset(); // Reset form
+            alert('โพสต์สำเร็จ!');
+
+        } catch (err) {
+            console.error('Error:', err);
+            alert('เกิดข้อผิดพลาด: ' + err.message);
+        }
+    };
+
+    if (isLoading) return <div>กำลังโหลด...</div>;
+    if (error) return <div>เกิดข้อผิดพลาด: {error}</div>;
+
+    return (
+        <div className="community-container">
+            <h1>ชุมชน</h1>
+            
+            {/* Post Form */}
+            <form onSubmit={handleSubmit} className="post-form">
+                <div className="form-group">
+                    <label htmlFor="title">หัวข้อ</label>
+                    <input type="text" id="title" name="title" required />
+                </div>
+                
+                <div className="form-group">
+                    <label htmlFor="content">เนื้อหา</label>
+                    <textarea id="content" name="content" required></textarea>
+                </div>
+                
+                <div className="form-group">
+                    <label htmlFor="category">หมวดหมู่</label>
+                    <select 
+                        id="category" 
+                        name="category" 
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        required
+                    >
+                        <option value="">-- กรุณาเลือกหมวดหมู่ --</option>
+                        {categories.map(category => (
+                            <option key={category.id} value={category.name}>
+                                {category.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                
+                <div className="form-group">
+                    <label htmlFor="image">รูปภาพ (ไม่บังคับ)</label>
+                    <input type="file" id="image" name="image" accept="image/*" />
+                </div>
+                
+                <button type="submit" className="submit-btn">โพสต์</button>
+            </form>
+
+            {/* Posts List */}
+            <div className="posts-list">
+                {posts.map(post => (
+                    <div key={post.id} className="post-card">
+                        <h2>{post.title}</h2>
+                        <p className="post-meta">
+                            โดย {post.username} • {post.timestamp} • {post.category}
+                        </p>
+                        <p className="post-content">{post.content}</p>
+                        {post.image && (
+                            <img src={post.image} alt={post.title} className="post-image" />
+                        )}
+                        <div className="post-actions">
+                            <span>❤️ {post.likes}</span>
+                            <span>💬 {post.comments}</span>
+                            <button onClick={() => sharePost(post.id)}>แชร์</button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
 }
 
+// Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if we're on the community page
-    if (document.getElementById('community-root')) {
-        console.log('Community page loaded');
-        
-        // This could be used to add any non-React functionality
-        // For example, analytics tracking or interactions with other parts of the page
-        
-        // Example of how to interact with the React app from outside
-        window.shareToExternal = function(postId, platform) {
-            // You could implement sharing to different platforms here
-            const postTitle = document.querySelector(`[data-post-id="${postId}"] h2`).textContent;
-            const shareUrl = window.location.origin + '/community/post/' + postId;
-            
-            let shareWindow;
-            
-            switch(platform) {
-                case 'facebook':
-                    shareWindow = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-                    break;
-                case 'twitter':
-                    shareWindow = `https://twitter.com/intent/tweet?text=${encodeURIComponent(postTitle)}&url=${encodeURIComponent(shareUrl)}`;
-                    break;
-                default:
-                    console.error('Unknown sharing platform');
-                    return;
-            }
-            
-            window.open(shareWindow, '_blank', 'width=600,height=400');
-        };
-        
-        // In a real implementation, you would set up Ajax endpoints for the community features
-        // For example:
-        
-        /*
-        // Like a post
-        function likePost(postId) {
-            fetch('/api/community/like/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({ post_id: postId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Success:', data);
-                // Update the UI with the new like count
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        }
-        
-        // Add a comment
-        function addComment(postId, commentText) {
-            fetch('/api/community/comment/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({ 
-                    post_id: postId,
-                    comment: commentText
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Comment added:', data);
-                // Update the UI with the new comment
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        }
-        */
+    const communityRoot = document.getElementById('community-root');
+    if (communityRoot) {
+        ReactDOM.render(<CommunityApp />, communityRoot);
     }
 });
+
+// Helper function for sharing posts
+function sharePost(postId) {
+    const postTitle = document.querySelector(`[data-post-id="${postId}"] h2`)?.textContent || 'โพสต์ชุมชน';
+    const shareUrl = `${window.location.origin}/community/post/${postId}`;
+    
+    const shareWindow = window.open('', '_blank', 'width=600,height=400');
+    shareWindow.location.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(postTitle)}`;
+}

@@ -39,8 +39,8 @@ urlpatterns = [
 
     # --- API: User ---
     path('api/user/profile/', views.UserProfileView.as_view(), name='user_profile'),
-    path('api/user/change-password/', views.ChangePasswordView.as_view(), name='change_password'),
     path('api/user/orders/', views.OrderHistoryView.as_view(), name='order_history'),
+    path('api/user/change-password/', views.ChangePasswordView.as_view(), name='change_password'),
 
     # --- API: Products & Categories ---
     path('api/categories/', views.get_categories, name='get_categories'),

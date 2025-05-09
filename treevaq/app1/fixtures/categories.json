@@ -1,0 +1,20 @@
+[
+  {
+    "model": "app1.CommunityCategory",
+    "fields": {
+      "name": "ทั่วไป",
+      "description": "กระทู้ทั่วไป",
+      "created_at": "2023-01-01T00:00:00Z",
+      "slug": "general-th"
+    }
+  },
+  {
+    "model": "app1.CommunityCategory",
+    "fields": {
+      "name": "General",
+      "description": "General discussions",
+      "created_at": "2023-01-01T00:00:00Z",
+      "slug": "general-en"
+    }
+  }
+]

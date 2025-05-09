@@ -97,18 +97,15 @@ class CommunityCategory(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
     
-    class Meta:
-        verbose_name_plural = "Community Categories"
+    @classmethod
+    def get_default_category(cls):
+        category, created = cls.objects.get_or_create(
+            name='General',
+            defaults={'description': 'General discussions'}
+        )
+        return category
 
 
 class CommunityPost(models.Model):
@@ -180,18 +177,23 @@ class Review(models.Model):
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
-    # Assuming your Product model is imported or defined elsewhere
-    # Use this if the Product model is in another app:
-    # product = models.ForeignKey('other_app.Product', on_delete=models.CASCADE, related_name='reviews')
-    # Or use this if the Product model is in the same app:
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='reviews')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
     rating = models.IntegerField(choices=RATING_CHOICES)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)  # ใช้สำหรับ soft delete
+
+    class Meta:
+        unique_together = ('user', 'product')  # ให้ 1 user รีวิว 1 product ได้เพียง 1 ครั้ง
 
     def __str__(self):
-        return f"{self.user.username}'s review of {self.product.name}"
+        return f"{self.user.username}'s review of {self.product.name} ({self.rating}/5)"
+    
+    def delete(self, *args, **kwargs):
+        """Soft delete โดยไม่ลบจริงจากฐานข้อมูล"""
+        self.is_active = False
+        self.save()
 
 
 class Question(models.Model):
