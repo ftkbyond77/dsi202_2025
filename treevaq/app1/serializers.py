@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import UserProfile, Order, Product, CarbonFootprint
+from .models import UserProfile, Order, Product, CarbonFootprint, CommunityPost
 from django.contrib.auth.models import User
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -37,3 +37,8 @@ class ProductSerializer(serializers.ModelSerializer):
         # Automatically set the seller to the authenticated user
         validated_data['seller'] = self.context['request'].user
         return super().create(validated_data)
+    
+class CommunityPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommunityPost
+        fields = ['id', 'user', 'title', 'content', 'category', 'timestamp', 'likes', 'comments', 'image']

@@ -1,30 +1,28 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import models
 from django.views.generic import ListView, DetailView
-from .models import Product, CarbonFootprint, Blog, CommunityPost, User
+from .models import Product, CarbonFootprint, Blog, CommunityPost, User, PostLike, Comment, CommunityCategory
 from django.db.models import Q, Sum, Avg, Count
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test, login_required
 from rest_framework import generics, permissions
-from .serializers import ProductSerializer
-
+from .serializers import ProductSerializer, UserSerializer, OrderSerializer, CommunityPostSerializer
 from django.utils import timezone
 from datetime import datetime, timedelta
 from django.contrib import messages
 from .forms import ProductPostForm, ReviewForm, QuestionForm, AnswerForm
-
 import json
+from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.contrib.auth.forms import UserCreationForm
 from django.views import generic
-
+from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
-from .serializers import UserSerializer, OrderSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -43,7 +41,78 @@ def blog(request):
     return render(request, 'app1/blog.html')
 
 def community(request):
-    return render(request, 'app1/community.html')
+    # Initialize Review Form
+    review_form = ReviewForm(request.POST if request.method == 'POST' else None)
+
+    # Handle Form Submissions (for reviews)
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        
+        if form_type == 'review' and review_form.is_valid():
+            review_form.save(request.user)
+            messages.success(request, "Review submitted successfully!")
+            return redirect('app1:community')
+
+    # Fetch all community posts ordered by creation date
+    posts = CommunityPost.objects.all().order_by('-created_at')
+    
+    # Get all categories for filtering
+    categories = CommunityCategory.objects.all()
+    
+    # Handle category filtering if requested
+    category_id = request.GET.get('category')
+    if category_id:
+        posts = posts.filter(category_id=category_id)
+
+    # Fetch Products and Associated Reviews
+    products = Product.objects.all()
+    for product in products:
+        product.topics = ["Sustainable"] if product.is_sustainable else ["General"]
+        if "Bag" in product.name:
+            product.topics.append("Fashion")
+        elif "Bottle" in product.name or "Container" in product.name:
+            product.topics.append("Kitchen")
+        elif "Toothbrush" in product.name:
+            product.topics.append("Personal Care")
+        else:
+            product.topics.append("Miscellaneous")
+
+    # Calculate Carbon Savers Ranking with Levels
+    carbon_ranking = CarbonFootprint.objects.values('product__seller__username').annotate(
+        total_carbon_saved=Sum('carbon_saved_kg')
+    ).order_by('-total_carbon_saved')[:5]
+    
+    ranking_list = []
+    for item in carbon_ranking:
+        if not item['product__seller__username']:
+            continue
+        carbon_saved = item['total_carbon_saved'] or 0.0
+        if carbon_saved >= 50:
+            level = "Expert"
+        elif carbon_saved >= 20:
+            level = "Advanced"
+        elif carbon_saved >= 5:
+            level = "Student"
+        else:
+            level = "Basic"
+        description = f"Eco-warrior contributing to a greener planet with {carbon_saved:.2f} kg saved!"
+        ranking_list.append({
+            'username': item['product__seller__username'],
+            'carbon_saved': carbon_saved,
+            'description': description,
+            'level': level,
+        })
+
+    context = {
+        'review_form': review_form,
+        'posts': posts,
+        'categories': categories,
+        'products': products,
+        'carbon_ranking': ranking_list,
+        'cart_total': request.session.get('cart_total', 0),
+        'selected_category': int(category_id) if category_id else None,
+    }
+    return render(request, 'app1/community.html', context)
 
 def dashboard(request):
     return render(request, 'app1/dashboard.html')
@@ -56,11 +125,6 @@ def product_detail(request, pk):
 
 def blog_detail(request, pk):
     return render(request, 'app1/blog_detail.html')
-
-# Template Views
-def home(request):
-    return render(request, 'app1/home.html')
-
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -103,7 +167,7 @@ class OrderHistoryView(APIView):
             return Response(serializer.data)
         except Exception as e:
             return Response({'error': f'Failed to fetch orders: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
 @login_required
 def account_view(request):
     return render(request, 'app1/account.html')
@@ -136,7 +200,6 @@ class ProductDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Use the OneToOneField related name: carbon_footprint
         carbon_footprint = getattr(self.object, 'carbon_footprint', None)
         if carbon_footprint:
             total_carbon_saved = carbon_footprint.carbon_saved_kg
@@ -149,7 +212,6 @@ class ProductDetailView(DetailView):
 
 @login_required
 def dashboard(request):
-    # Existing Metrics
     total_products = Product.objects.count()
     sustainable_products = Product.objects.filter(is_sustainable=True).count()
     total_carbon_saved = CarbonFootprint.objects.aggregate(total=Sum('carbon_saved_kg'))['total'] or 0.0
@@ -159,30 +221,25 @@ def dashboard(request):
         product_count=Count('products')
     ).values('username', 'product_count').filter(product_count__gt=0)
 
-    # User Statistics
     total_users = User.objects.count()
     thirty_days_ago = datetime.now() - timedelta(days=30)
     active_users = User.objects.filter(last_login__gte=thirty_days_ago).count()
     active_percentage = round((active_users / total_users * 100) if total_users > 0 else 0, 1)
     recent_users = User.objects.order_by('-last_login')[:5]
 
-    # Carbon Savings Equivalents (Simplified Calculations)
-    carbon_equivalent_trees = round(total_carbon_saved / 20)  # Approx. 20 kg CO₂ per tree per year
-    carbon_equivalent_cars = round(total_carbon_saved / 4700)  # Approx. 4700 kg CO₂ per car per year
+    carbon_equivalent_trees = round(total_carbon_saved / 20)
+    carbon_equivalent_cars = round(total_carbon_saved / 4700)
 
-    # Average Metrics
     products_per_user = round(Product.objects.count() / total_users, 1) if total_users > 0 else 0
 
-    # Simulated Order Data (Replace with actual Order model in a real implementation)
-    total_orders = 120  # Simulated
-    total_revenue = 4500.00  # Simulated
+    total_orders = 120
+    total_revenue = 4500.00
     recent_orders = [
         {'id': 1, 'user': User.objects.first() or {'username': 'user1'}, 'total_amount': 150.00, 'created_at': datetime.now(), 'status': 'completed'},
         {'id': 2, 'user': User.objects.first() or {'username': 'user2'}, 'total_amount': 200.00, 'created_at': datetime.now() - timedelta(days=1), 'status': 'pending'},
         {'id': 3, 'user': User.objects.first() or {'username': 'user3'}, 'total_amount': 80.00, 'created_at': datetime.now() - timedelta(days=2), 'status': 'completed'},
     ]
 
-    # Simulated Top Products (Replace with actual data in a real implementation)
     top_products = [
         {'name': 'Eco-Friendly Bag', 'units_sold': 50, 'revenue': 1000.00, 'is_sustainable': True},
         {'name': 'Reusable Water Bottle', 'units_sold': 40, 'revenue': 800.00, 'is_sustainable': True},
@@ -204,7 +261,7 @@ def dashboard(request):
         'carbon_equivalent_trees': carbon_equivalent_trees,
         'carbon_equivalent_cars': carbon_equivalent_cars,
         'products_per_user': products_per_user,
-        'average_rating': None,  # Placeholder (requires a Product rating field)
+        'average_rating': None,
         'total_orders': total_orders,
         'total_revenue': total_revenue,
         'recent_orders': recent_orders,
@@ -213,7 +270,7 @@ def dashboard(request):
     return render(request, 'app1/dashboard.html', context)
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)  # Only allow superusers
+@user_passes_test(lambda u: u.is_superuser)
 def user_management(request):
     users = User.objects.all().order_by('-date_joined')
     return render(request, 'app1/user_management.html', {'users': users})
@@ -223,7 +280,6 @@ def user_management(request):
 def edit_user(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     if request.method == 'POST':
-        # Handle form submission
         user.username = request.POST.get('username')
         user.email = request.POST.get('email')
         user.save()
@@ -294,8 +350,7 @@ def checkout(request):
             'subtotal': subtotal
         })
     if request.method == 'POST':
-        # Simulate order placement (no payment system)
-        del request.session['cart']  # Clear cart after checkout
+        del request.session['cart']
         return redirect('app1:home')
     context = {
         'cart_items': cart_items,
@@ -317,84 +372,215 @@ def blog_detail(request, article_id):
     context = {'article': article}
     return render(request, 'app1/blog_details.html', context)
 
+# API view to fetch and create community posts
+@api_view(['GET', 'POST'])
 @login_required
-def community(request):
-    # Initialize Review Form
-    review_form = ReviewForm(request.POST if request.method == 'POST' else None)
+def get_community_posts(request):
+    if request.method == 'GET':
+        try:
+            posts = CommunityPost.objects.select_related('user', 'category').all().order_by('-created_at')
+            data = [{
+                'id': post.id,
+                'username': post.user.username if post.user else 'Anonymous',
+                'title': post.title,
+                'content': post.content,
+                'timestamp': post.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'likes': getattr(post, 'likes_count', 0),
+                'comments': getattr(post, 'comments_count', 0),
+                'category': post.category.name if post.category else 'Uncategorized',
+                'image': post.image.url if hasattr(post, 'image') and post.image else None,
+                'is_owner': post.user == request.user
+            } for post in posts]
+            return Response(data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+    elif request.method == 'POST':
+        try:
+            title = request.POST.get('title')
+            content = request.POST.get('content')
+            category_id = request.POST.get('category_id')  # รับ category_id แทน category
+            image = request.FILES.get('image')
 
-    # Handle Form Submissions (for reviews)
-    if request.method == 'POST':
-        form_type = request.POST.get('form_type')
-        
-        if form_type == 'review' and review_form.is_valid():
-            review_form.save(request.user)
-            messages.success(request, "Review submitted successfully!")
-            return redirect('app1:community')
-        
-        # Handle Voting
-        elif request.POST.get('action') == 'vote':
-            post_id = request.POST.get('post_id')
-            vote_type = request.POST.get('vote_type')
-            post = get_object_or_404(CommunityPost, id=post_id)
-            if vote_type == 'upvote':
-                post.upvotes += 1
-            elif vote_type == 'downvote':
-                post.downvotes += 1
-            post.save()
-            return redirect('app1:community')
+            if not title or not content or not category_id:
+                return Response({'error': 'Title, content, and category are required'}, status=400)
 
-    # Fetch Products and Associated Reviews
-    products = Product.objects.all()
-    # Simulate topics (since Product model doesn't have this field)
-    for product in products:
-        product.topics = ["Sustainable"] if product.is_sustainable else ["General"]
-        if "Bag" in product.name:
-            product.topics.append("Fashion")
-        elif "Bottle" in product.name or "Container" in product.name:
-            product.topics.append("Kitchen")
-        elif "Toothbrush" in product.name:
-            product.topics.append("Personal Care")
-        else:
-            product.topics.append("Miscellaneous")
+            category = get_object_or_404(CommunityCategory, id=category_id)  # Query instance จาก category_id
+            post = CommunityPost.objects.create(
+                user=request.user,
+                title=title,
+                content=content,
+                category=category,
+                image=image
+            )
+            data = {
+                'id': post.id,
+                'username': post.user.username if post.user else 'Anonymous',
+                'title': post.title,
+                'content': post.content,
+                'timestamp': post.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'likes': getattr(post, 'likes_count', 0),
+                'comments': getattr(post, 'comments_count', 0),
+                'category': post.category.name if post.category else 'Uncategorized',
+                'image': post.image.url if hasattr(post, 'image') and post.image else None,
+                'is_owner': True
+            }
+            return Response(data, status=201)
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
 
-    # Fetch reviews for each product
-    product_reviews = {
-        product.id: CommunityPost.objects.filter(product=product, post_type='REVIEW')
-        for product in products
-    }
+@login_required
+@require_POST
+def like_post(request):
+    data = json.loads(request.body)
+    post_id = data.get('post_id')
+    if not post_id:
+        return JsonResponse({'error': 'Post ID is required'}, status=400)
+    
+    post = get_object_or_404(CommunityPost, id=post_id)
+    like, created = PostLike.objects.get_or_create(user=request.user, post=post)
+    if not created:
+        like.delete()
+        action = 'unliked'
+    else:
+        action = 'liked'
+    
+    return JsonResponse({
+        'status': 'success',
+        'action': action,
+        'likes_count': getattr(post, 'likes_count', 0)
+    })
 
-    # Calculate Carbon Savers Ranking with Levels
-    carbon_ranking = CarbonFootprint.objects.values('product__seller__username').annotate(total_carbon_saved=Sum('carbon_saved_kg')).order_by('-total_carbon_saved')[:5]
-    ranking_list = []
-    for item in carbon_ranking:
-        if not item['product__seller__username']:
-            continue
-        carbon_saved = item['total_carbon_saved'] or 0.0
-        # Determine level based on carbon saved
-        if carbon_saved >= 50:
-            level = "Expert"
-        elif carbon_saved >= 20:
-            level = "Advanced"
-        elif carbon_saved >= 5:
-            level = "Student"
-        else:
-            level = "Basic"
-        # Simulate a description for the user (since User model doesn't have a description field)
-        description = f"Eco-warrior contributing to a greener planet with {carbon_saved:.2f} kg saved!"
-        ranking_list.append({
-            'username': item['product__seller__username'],
-            'carbon_saved': carbon_saved,
-            'description': description,
-            'level': level,
-        })
+@login_required
+@require_POST
+def add_comment(request):
+    data = json.loads(request.body)
+    post_id = data.get('post_id')
+    comment_text = data.get('comment')
+    if not post_id or not comment_text or not comment_text.strip():
+        return JsonResponse({'error': 'Post ID and comment text are required'}, status=400)
+    
+    post = get_object_or_404(CommunityPost, id=post_id)
+    comment = Comment.objects.create(
+        user=request.user,
+        post=post,
+        content=comment_text
+    )
+    
+    return JsonResponse({
+        'status': 'success',
+        'comment_id': comment.id,
+        'user': request.user.username,
+        'content': comment.content,
+        'created_at': comment.created_at.strftime('%b %d, %Y, %I:%M %p'),
+        'comments_count': getattr(post, 'comments_count', 0)
+    })
 
-    context = {
-        'review_form': review_form,
-        'products': products,
-        'product_reviews': product_reviews,
-        'carbon_ranking': ranking_list,
-    }
-    return render(request, 'app1/community.html', context)
+@login_required
+@require_POST
+def delete_comment(request):
+    data = json.loads(request.body)
+    comment_id = data.get('comment_id')
+    if not comment_id:
+        return JsonResponse({'error': 'Comment ID is required'}, status=400)
+    
+    comment = get_object_or_404(Comment, id=comment_id)
+    if comment.user != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    post = comment.post
+    comment.delete()
+    
+    return JsonResponse({
+        'status': 'success',
+        'comments_count': getattr(post, 'comments_count', 0)
+    })
+
+@login_required
+@require_POST
+def create_post(request):
+    data = json.loads(request.body)
+    title = data.get('title')
+    content = data.get('content')
+    category_id = data.get('category_id')
+    
+    if not title or not content or not category_id:
+        return JsonResponse({
+            'error': 'Title, content, and category are required'
+        }, status=400)
+    
+    category = get_object_or_404(CommunityCategory, id=category_id)
+    
+    post = CommunityPost.objects.create(
+        user=request.user,
+        title=title,
+        content=content,
+        category=category
+    )
+    
+    return JsonResponse({
+        'status': 'success',
+        'post_id': post.id,
+        'title': post.title,
+        'created_at': post.created_at.strftime('%b %d, %Y, %I:%M %p')
+    })
+
+@login_required
+@require_POST
+def delete_post(request):
+    data = json.loads(request.body)
+    post_id = data.get('post_id')
+    
+    if not post_id:
+        return JsonResponse({'error': 'Post ID is required'}, status=400)
+    
+    post = get_object_or_404(CommunityPost, id=post_id)
+    if post.user != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    post.delete()
+    
+    return JsonResponse({
+        'status': 'success'
+    })
+
+@login_required
+def get_post_details(request, post_id):
+    post = get_object_or_404(CommunityPost, id=post_id)
+    user_liked = PostLike.objects.filter(user=request.user, post=post).exists()
+    comments = Comment.objects.filter(post=post).order_by('-created_at')
+    comments_data = [{
+        'id': comment.id,
+        'user': comment.user.username,
+        'content': comment.content,
+        'created_at': comment.created_at.strftime('%b %d, %Y, %I:%M %p'),
+        'is_owner': comment.user == request.user
+    } for comment in comments]
+    
+    return JsonResponse({
+        'id': post.id,
+        'title': post.title,
+        'content': post.content,
+        'user': post.user.username,
+        'created_at': post.created_at.strftime('%b %d, %Y, %I:%M %p'),
+        'likes_count': getattr(post, 'likes_count', 0),
+        'comments_count': getattr(post, 'comments_count', 0),
+        'user_liked': user_liked,
+        'is_owner': post.user == request.user,
+        'category': {
+            'id': post.category.id,
+            'name': post.category.name
+        },
+        'comments': comments_data
+    })
+
+def get_categories(request):
+    categories = CommunityCategory.objects.all()
+    return JsonResponse({
+        'categories': [
+            {'id': category.id, 'name': category.name}
+            for category in categories
+        ]
+    })
 
 @login_required
 def add_to_wishlist(request):
@@ -402,13 +588,10 @@ def add_to_wishlist(request):
         product_id = request.POST.get('product_id')
         if not product_id:
             return JsonResponse({'status': 'error', 'message': 'Product ID is required'}, status=400)
-
         try:
             product = Product.objects.get(id=product_id)
         except Product.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Product not found'}, status=404)
-
-        # Get or initialize wishlist from session
         wishlist = request.session.get('wishlist', [])
         if product_id not in wishlist:
             wishlist.append(product_id)
@@ -417,7 +600,6 @@ def add_to_wishlist(request):
         else:
             return JsonResponse({'status': 'info', 'message': f'{product.name} is already in your wishlist!'})
     elif request.method == 'GET':
-        # Return the current wishlist count for the client
         wishlist = request.session.get('wishlist', [])
         return JsonResponse({'wishlist_count': len(wishlist)})
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
@@ -428,13 +610,10 @@ def remove_from_wishlist(request):
         product_id = request.POST.get('product_id')
         if not product_id:
             return JsonResponse({'status': 'error', 'message': 'Product ID is required'}, status=400)
-
         try:
             product = Product.objects.get(id=product_id)
         except Product.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Product not found'}, status=404)
-
-        # Get or initialize wishlist from session
         wishlist = request.session.get('wishlist', [])
         if product_id in wishlist:
             wishlist.remove(product_id)
@@ -446,16 +625,13 @@ def remove_from_wishlist(request):
 
 @login_required
 def wishlist(request):
-    # Get wishlist from session
     wishlist = request.session.get('wishlist', [])
-    # Fetch product objects for the wishlist
     products = Product.objects.filter(id__in=wishlist)
     context = {
         'wishlist': products,
     }
     return render(request, 'app1/wishlist.html', context)
 
-# API Views
 class ProductListCreateAPIView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer

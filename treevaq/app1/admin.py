@@ -1,5 +1,9 @@
 from django.contrib import admin
-from .models import UserProfile, Order, Product, CarbonFootprint, Blog, CommunityPost
+from .models import (
+    UserProfile, Order, Product, CarbonFootprint, Blog,
+    CommunityCategory, CommunityPost, Comment, PostLike,
+    Review, Question, Answer
+)
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
@@ -33,5 +37,40 @@ class CarbonFootprintAdmin(admin.ModelAdmin):
         self.message_user(request, "Carbon savings recalculated successfully.")
     recalculate_carbon_saving.short_description = "Recalculate carbon savings for selected items"
 
-admin.site.register(Blog)
-admin.site.register(CommunityPost)
+@admin.register(CommunityCategory)
+class CommunityCategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'created_at')
+    search_fields = ('name',)
+    prepopulated_fields = {'slug': ('name',)}
+
+@admin.register(CommunityPost)
+class CommunityPostAdmin(admin.ModelAdmin):
+    list_display = ('title', 'user', 'category', 'created_at', 'updated_at')
+    search_fields = ('title', 'content', 'user__username')
+    list_filter = ('category', 'created_at')
+    prepopulated_fields = {'slug': ('title',)}
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('user', 'post', 'created_at')
+    search_fields = ('user__username', 'post__title')
+
+@admin.register(PostLike)
+class PostLikeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'post', 'created_at')
+    search_fields = ('user__username', 'post__title')
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('user', 'product', 'rating', 'created_at')
+    search_fields = ('user__username', 'product__name')
+
+@admin.register(Question)
+class QuestionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'product', 'title', 'created_at')
+    search_fields = ('user__username', 'product__name', 'title')
+
+@admin.register(Answer)
+class AnswerAdmin(admin.ModelAdmin):
+    list_display = ('user', 'question', 'created_at')
+    search_fields = ('user__username', 'question__title')

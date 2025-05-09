@@ -1,70 +1,76 @@
 from django import forms
-from .models import CommunityPost, Product
+from .models import CommunityPost, Comment, Review, Question, Answer
 
-class ProductPostForm(forms.ModelForm):
+# Import Product directly if it's in this app, or reference it if it's in another app
+try:
+    from .models import Product
+except ImportError:
+    # If Product is in another app, you might need to import it differently
+    # For example:
+    # from products_app.models import Product
+    pass
+
+class CommunityPostForm(forms.ModelForm):
     class Meta:
         model = CommunityPost
-        fields = ['product', 'content']
+        fields = ['title', 'content', 'category']
         widgets = {
-            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Share your thoughts about this product...'}),
+            'content': forms.Textarea(attrs={'rows': 5}),
         }
 
-    def save(self, user, commit=True):
-        instance = super().save(commit=False)
-        instance.user = user
-        instance.post_type = 'PRODUCT_POST'
-        if commit:
-            instance.save()
-        return instance
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Add a comment...'}),
+        }
+        labels = {
+            'content': '',
+        }
+
+# Only define this if Product exists in your project
+try:
+    class ProductPostForm(forms.ModelForm):
+        class Meta:
+            model = Product
+            # Adjust these fields based on your actual Product model structure
+            fields = ['name', 'description', 'price', 'image'] 
+            widgets = {
+                'description': forms.Textarea(attrs={'rows': 5}),
+            }
+except NameError:
+    # If Product isn't imported, create a placeholder
+    class ProductPostForm(forms.Form):
+        # Define basic fields that match your actual Product model
+        name = forms.CharField(max_length=200)
+        description = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}))
+        price = forms.DecimalField(max_digits=10, decimal_places=2)
+        image = forms.ImageField(required=False)
 
 class ReviewForm(forms.ModelForm):
-    rating = forms.IntegerField(min_value=1, max_value=5, widget=forms.NumberInput(attrs={'min': 1, 'max': 5}))
-
     class Meta:
-        model = CommunityPost
-        fields = ['product', 'content', 'rating']
+        model = Review
+        fields = ['rating', 'content']
         widgets = {
-            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Write your review...'}),
+            'content': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Write your review...'}),
         }
-
-    def save(self, user, commit=True):
-        instance = super().save(commit=False)
-        instance.user = user
-        instance.post_type = 'REVIEW'
-        if commit:
-            instance.save()
-        return instance
 
 class QuestionForm(forms.ModelForm):
     class Meta:
-        model = CommunityPost
-        fields = ['product', 'content']
+        model = Question
+        fields = ['title', 'content']
         widgets = {
-            'product': forms.Select(attrs={'class': 'optional'}),
-            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Ask a question...'}),
+            'content': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Describe your question...'}),
         }
-
-    def save(self, user, commit=True):
-        instance = super().save(commit=False)
-        instance.user = user
-        instance.post_type = 'QUESTION'
-        if commit:
-            instance.save()
-        return instance
 
 class AnswerForm(forms.ModelForm):
     class Meta:
-        model = CommunityPost
+        model = Answer
         fields = ['content']
         widgets = {
-            'content': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Provide an answer...'}),
+            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Your answer...'}),
         }
-
-    def save(self, user, parent, commit=True):
-        instance = super().save(commit=False)
-        instance.user = user
-        instance.post_type = 'ANSWER'
-        instance.parent = parent
-        if commit:
-            instance.save()
-        return instance
+        labels = {
+            'content': '',
+        }
