@@ -1,0 +1,46 @@
+{% extends 'app1/base.html' %}
+
+{% block title %}Payment - Treevaq{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-semibold text-gray-800 mb-6 animate-fade-in">Payment for Order #{{ order.id }}</h2>
+
+<div class="flex flex-col gap-6">
+    <!-- Order Summary -->
+    <div class="bg-white p-4 rounded-lg shadow-md animate-fade-in">
+        <h3 class="text-lg font-semibold">Order Summary</h3>
+        <p class="text-gray-600">Total Amount: ${{ order.total }}</p>
+        <p class="text-gray-600">Status: {{ order.status }}</p>
+    </div>
+
+    <!-- PromptPay QR Code -->
+    <div class="bg-white p-4 rounded-lg shadow-md animate-fade-in">
+        <h3 class="text-lg font-semibold">Pay with PromptPay</h3>
+        <p class="text-gray-600">Scan the QR code below to pay ${{ order.total }} to PromptPay (0801857971):</p>
+        <img src="{{ qr_code_url }}" alt="PromptPay QR Code" class="mt-4 mx-auto" style="max-width: 200px;">
+    </div>
+
+    <!-- Receipt Upload -->
+    <div class="bg-white p-4 rounded-lg shadow-md animate-fade-in">
+        <h3 class="text-lg font-semibold">Upload Payment Receipt</h3>
+        {% if payment.receipt %}
+            <p class="text-green-600">Receipt uploaded successfully. Waiting for verification.</p>
+            <img src="{{ payment.receipt.url }}" alt="Payment Receipt" class="mt-4" style="max-width: 300px;">
+        {% else %}
+            <form method="post" enctype="multipart/form-data" class="mt-4">
+                {% csrf_token %}
+                <input type="file" name="receipt" accept="image/*" required class="block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-lg file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-green-50 file:text-green-700
+                    hover:file:bg-green-100">
+                <button type="submit" class="mt-4 block w-full bg-green-600 text-white text-center font-semibold py-2 rounded-lg hover:bg-green-700 transition animate-bounce-slow">Upload Receipt</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <!-- Back to Orders -->
+    <a href="{% url 'app1:order_history' %}" class="block mt-4 text-blue-600 hover:underline">View Order History</a>
+</div>
+{% endblock %}

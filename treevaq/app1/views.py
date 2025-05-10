@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import models
 from django.views.generic import ListView, DetailView
-from .models import Product, CarbonFootprint, Blog, CommunityPost, User, PostLike, Comment, CommunityCategory, Review
+from .models import Product, CarbonFootprint, Blog, CommunityPost, User, PostLike, Comment, CommunityCategory, Review, Order, OrderItem, Payment
 from django.db.models import Q, Sum, Avg, Count
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test, login_required
@@ -25,10 +25,11 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
-
-from .models import CommunityPost, CommunityCategory, PostLike, Comment, Review
+import qrcode
+from io import BytesIO
+import base64
+import os
 import traceback
-
 
 class SignupView(generic.CreateView):
     form_class = UserCreationForm
@@ -45,30 +46,18 @@ def blog(request):
     return render(request, 'app1/blog.html')
 
 def community(request):
-    # Initialize Review Form
     review_form = ReviewForm(request.POST if request.method == 'POST' else None)
-
-    # Handle Form Submissions (for reviews)
     if request.method == 'POST':
         form_type = request.POST.get('form_type')
-        
         if form_type == 'review' and review_form.is_valid():
             review_form.save(request.user)
             messages.success(request, "Review submitted successfully!")
             return redirect('app1:community')
-
-    # Fetch all community posts ordered by creation date
     posts = CommunityPost.objects.all().order_by('-created_at')
-    
-    # Get all categories for filtering
     categories = CommunityCategory.objects.all()
-    
-    # Handle category filtering if requested
     category_id = request.GET.get('category')
     if category_id:
         posts = posts.filter(category_id=category_id)
-
-    # Fetch Products and Associated Reviews
     products = Product.objects.all()
     for product in products:
         product.topics = ["Sustainable"] if product.is_sustainable else ["General"]
@@ -80,12 +69,9 @@ def community(request):
             product.topics.append("Personal Care")
         else:
             product.topics.append("Miscellaneous")
-
-    # Calculate Carbon Savers Ranking with Levels
     carbon_ranking = CarbonFootprint.objects.values('product__seller__username').annotate(
         total_carbon_saved=Sum('carbon_saved_kg')
     ).order_by('-total_carbon_saved')[:5]
-    
     ranking_list = []
     for item in carbon_ranking:
         if not item['product__seller__username']:
@@ -106,7 +92,6 @@ def community(request):
             'description': description,
             'level': level,
         })
-
     context = {
         'review_form': review_form,
         'posts': posts,
@@ -132,7 +117,6 @@ def blog_detail(request, pk):
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
-
     def get(self, request):
         try:
             serializer = UserSerializer(request.user)
@@ -141,7 +125,6 @@ class UserProfileView(APIView):
             return Response({'error': 'User profile not found. Please contact support.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
     def post(self, request):
         user_profile = request.user.profile
         if 'profile_photo' in request.FILES:
@@ -152,7 +135,6 @@ class UserProfileView(APIView):
 
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
-
     def post(self, request):
         form = PasswordChangeForm(user=request.user, data=request.data)
         if form.is_valid():
@@ -163,7 +145,6 @@ class ChangePasswordView(APIView):
 
 class OrderHistoryView(APIView):
     permission_classes = [IsAuthenticated]
-
     def get(self, request):
         try:
             orders = request.user.orders.all().order_by('-order_date')
@@ -180,7 +161,6 @@ class ProductListView(ListView):
     model = Product
     template_name = 'app1/product_list.html'
     context_object_name = 'products'
-
     def get_queryset(self):
         query = self.request.GET.get('q', '').strip()
         sustainable_filter = self.request.GET.get('sustainable', False)
@@ -190,7 +170,6 @@ class ProductListView(ListView):
         if sustainable_filter:
             queryset = queryset.filter(is_sustainable=True)
         return queryset
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['query'] = self.request.GET.get('q', '')
@@ -201,7 +180,6 @@ class ProductDetailView(DetailView):
     model = Product
     template_name = 'app1/product_detail.html'
     context_object_name = 'product'
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         carbon_footprint = getattr(self.object, 'carbon_footprint', None)
@@ -224,18 +202,14 @@ def dashboard(request):
     products_per_seller = User.objects.annotate(
         product_count=Count('products')
     ).values('username', 'product_count').filter(product_count__gt=0)
-
     total_users = User.objects.count()
     thirty_days_ago = datetime.now() - timedelta(days=30)
     active_users = User.objects.filter(last_login__gte=thirty_days_ago).count()
     active_percentage = round((active_users / total_users * 100) if total_users > 0 else 0, 1)
     recent_users = User.objects.order_by('-last_login')[:5]
-
     carbon_equivalent_trees = round(total_carbon_saved / 20)
     carbon_equivalent_cars = round(total_carbon_saved / 4700)
-
     products_per_user = round(Product.objects.count() / total_users, 1) if total_users > 0 else 0
-
     total_orders = 120
     total_revenue = 4500.00
     recent_orders = [
@@ -243,7 +217,6 @@ def dashboard(request):
         {'id': 2, 'user': User.objects.first() or {'username': 'user2'}, 'total_amount': 200.00, 'created_at': datetime.now() - timedelta(days=1), 'status': 'pending'},
         {'id': 3, 'user': User.objects.first() or {'username': 'user3'}, 'total_amount': 80.00, 'created_at': datetime.now() - timedelta(days=2), 'status': 'completed'},
     ]
-
     top_products = [
         {'name': 'Eco-Friendly Bag', 'units_sold': 50, 'revenue': 1000.00, 'is_sustainable': True},
         {'name': 'Reusable Water Bottle', 'units_sold': 40, 'revenue': 800.00, 'is_sustainable': True},
@@ -251,7 +224,6 @@ def dashboard(request):
         {'name': 'Bamboo Toothbrush', 'units_sold': 25, 'revenue': 125.00, 'is_sustainable': True},
         {'name': 'Cotton Tote', 'units_sold': 20, 'revenue': 300.00, 'is_sustainable': True},
     ]
-
     context = {
         'total_products': total_products,
         'sustainable_products': sustainable_products,
@@ -354,8 +326,17 @@ def checkout(request):
             'subtotal': subtotal
         })
     if request.method == 'POST':
+        order = Order.objects.create(user=request.user, total=total)
+        for item in cart_items:
+            OrderItem.objects.create(
+                order=order,
+                product=item['product'],
+                quantity=item['quantity'],
+                price=item['product'].price
+            )
+        Payment.objects.create(order=order, amount=total)
         del request.session['cart']
-        return redirect('app1:home')
+        return redirect('app1:payment', order_id=order.id)
     context = {
         'cart_items': cart_items,
         'total': total
@@ -363,6 +344,44 @@ def checkout(request):
     return render(request, 'app1/checkout.html', context)
 
 @login_required
+def payment(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    payment, created = Payment.objects.get_or_create(order=order, defaults={'amount': order.total})
+    
+    promptpay_id = "0801857971"
+    amount = float(order.total)
+    qr_payload = f"00020101021129370016A0000006770101110213{promptpay_id}5802TH540{amount:.2f}53037646304"
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(qr_payload)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    qr_code_url = f"data:image/png;base64,{qr_code_base64}"
+    
+    if request.method == 'POST':
+        receipt = request.FILES.get('receipt')
+        if receipt:
+            payment.receipt = receipt
+            payment.save()
+            order.status = 'PAID'
+            order.save()
+            payment.status = 'PENDING'
+            payment.save()
+    
+    return render(request, 'app1/payment.html', {
+        'order': order,
+        'payment': payment,
+        'qr_code_url': qr_code_url,
+    })
+
+@login_required
+def order_history(request):
+    orders = Order.objects.filter(user=request.user).order_by('-order_date')
+    return render(request, 'app1/order_history.html', {'orders': orders})
+
 def blog(request):
     articles = Blog.objects.all()
     context = {
@@ -370,7 +389,6 @@ def blog(request):
     }
     return render(request, 'app1/blog.html', context)
 
-@login_required
 def blog_detail(request, article_id):
     article = get_object_or_404(Blog, id=article_id)
     context = {'article': article}
@@ -397,7 +415,6 @@ def get_community_posts(request):
             return Response(data)
         except Exception as e:
             return Response({'error': str(e)}, status=500)
-    
     elif request.method == 'POST':
         try:
             data = request.data
@@ -405,11 +422,8 @@ def get_community_posts(request):
             content = data.get('content')
             category_name = data.get('category')
             image = request.FILES.get('image')
-
             if not title or not content or not category_name:
                 return Response({'error': 'Title, content, and category are required'}, status=400)
-
-            # แก้ไขส่วนนี้ - ใช้ iexact สำหรับไม่สนใจตัวพิมพ์เล็กใหญ่
             try:
                 category = CommunityCategory.objects.get(name__iexact=category_name.strip())
             except CommunityCategory.DoesNotExist:
@@ -417,7 +431,6 @@ def get_community_posts(request):
                 return Response({
                     'error': f'Invalid category "{category_name}". Available categories: {available_categories}'
                 }, status=400)
-            
             post = CommunityPost.objects.create(
                 user=request.user,
                 title=title,
@@ -425,7 +438,6 @@ def get_community_posts(request):
                 category=category,
                 image=image
             )
-            
             return Response({
                 'id': post.id,
                 'username': post.user.username,
@@ -438,7 +450,6 @@ def get_community_posts(request):
                 'image': post.image.url if post.image else None,
                 'is_owner': True
             }, status=201)
-            
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 
@@ -450,24 +461,18 @@ def create_review(request):
         product_id = data.get('product_id')
         rating = data.get('rating')
         content = data.get('content')
-
         if not all([product_id, rating, content]):
             return Response({'error': 'Product ID, rating and content are required'}, status=400)
-
         product = get_object_or_404(Product, id=product_id)
-        
-        # ตรวจสอบว่าเคยรีวิวไปแล้วหรือไม่
         existing_review = Review.objects.filter(user=request.user, product=product).first()
         if existing_review:
             return Response({'error': 'You have already reviewed this product'}, status=400)
-
         review = Review.objects.create(
             user=request.user,
             product=product,
             rating=rating,
             content=content
         )
-
         return Response({
             'status': 'success',
             'review_id': review.id,
@@ -475,15 +480,13 @@ def create_review(request):
             'content': review.content,
             'created_at': review.created_at.strftime('%Y-%m-%d %H:%M:%S')
         }, status=201)
-
     except Exception as e:
         return Response({'error': str(e)}, status=500)
-    
+
 @api_view(['GET'])
 def get_product_reviews(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     reviews = Review.objects.filter(product=product, is_active=True).order_by('-created_at')
-    
     data = [{
         'id': review.id,
         'user': {
@@ -495,7 +498,6 @@ def get_product_reviews(request, product_id):
         'created_at': review.created_at.strftime('%Y-%m-%d %H:%M:%S'),
         'is_owner': review.user == request.user
     } for review in reviews]
-    
     return Response(data)
 
 @login_required
@@ -505,7 +507,6 @@ def like_post(request):
     post_id = data.get('post_id')
     if not post_id:
         return JsonResponse({'error': 'Post ID is required'}, status=400)
-    
     post = get_object_or_404(CommunityPost, id=post_id)
     like, created = PostLike.objects.get_or_create(user=request.user, post=post)
     if not created:
@@ -513,7 +514,6 @@ def like_post(request):
         action = 'unliked'
     else:
         action = 'liked'
-    
     return JsonResponse({
         'status': 'success',
         'action': action,
@@ -528,14 +528,12 @@ def add_comment(request):
     comment_text = data.get('comment')
     if not post_id or not comment_text or not comment_text.strip():
         return JsonResponse({'error': 'Post ID and comment text are required'}, status=400)
-    
     post = get_object_or_404(CommunityPost, id=post_id)
     comment = Comment.objects.create(
         user=request.user,
         post=post,
         content=comment_text
     )
-    
     return JsonResponse({
         'status': 'success',
         'comment_id': comment.id,
@@ -568,14 +566,11 @@ def delete_comment(request):
     comment_id = data.get('comment_id')
     if not comment_id:
         return JsonResponse({'error': 'Comment ID is required'}, status=400)
-    
     comment = get_object_or_404(Comment, id=comment_id)
     if comment.user != request.user:
         return JsonResponse({'error': 'Permission denied'}, status=403)
-    
     post = comment.post
     comment.delete()
-    
     return JsonResponse({
         'status': 'success',
         'comments_count': getattr(post, 'comments_count', 0)
@@ -588,21 +583,17 @@ def create_post(request):
     title = data.get('title')
     content = data.get('content')
     category_id = data.get('category_id')
-    
     if not title or not content or not category_id:
         return JsonResponse({
             'error': 'Title, content, and category are required'
         }, status=400)
-    
     category = get_object_or_404(CommunityCategory, id=category_id)
-    
     post = CommunityPost.objects.create(
         user=request.user,
         title=title,
         content=content,
         category=category
     )
-    
     return JsonResponse({
         'status': 'success',
         'post_id': post.id,
@@ -615,16 +606,12 @@ def create_post(request):
 def delete_post(request):
     data = json.loads(request.body)
     post_id = data.get('post_id')
-    
     if not post_id:
         return JsonResponse({'error': 'Post ID is required'}, status=400)
-    
     post = get_object_or_404(CommunityPost, id=post_id)
     if post.user != request.user:
         return JsonResponse({'error': 'Permission denied'}, status=403)
-    
     post.delete()
-    
     return JsonResponse({
         'status': 'success'
     })
@@ -641,7 +628,6 @@ def get_post_details(request, post_id):
         'created_at': comment.created_at.strftime('%b %d, %Y, %I:%M %p'),
         'is_owner': comment.user == request.user
     } for comment in comments]
-    
     return JsonResponse({
         'id': post.id,
         'title': post.title,
@@ -728,7 +714,6 @@ class ProductRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
     def perform_update(self, serializer):
         if self.request.user != serializer.instance.seller:
             raise permissions.PermissionDenied("You can only update your own products.")
