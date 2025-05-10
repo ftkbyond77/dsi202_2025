@@ -92,20 +92,25 @@ class Blog(models.Model):
 #     def __str__(self):
 #         return f"{self.user.username} - {self.post_type} - {self.created_at}"
 
-# Community-related models
 class CommunityCategory(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     
     @classmethod
     def get_default_category(cls):
-        category, created = cls.objects.get_or_create(
-            name='General',
-            defaults={'description': 'General discussions'}
-        )
-        return category
+        try:
+            return cls.objects.get(id=1)
+        except cls.DoesNotExist:
+            category, created = cls.objects.get_or_create(
+                name='ทั่วไป',
+                defaults={
+                    'slug': 'general',
+                    'description': 'หมวดหมู่ทั่วไปสำหรับโพสต์ทั้งหมด'
+                }
+            )
+            return category
 
 
 class CommunityPost(models.Model):

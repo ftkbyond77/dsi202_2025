@@ -545,6 +545,22 @@ def add_comment(request):
         'comments_count': getattr(post, 'comments_count', 0)
     })
 
+@api_view(['GET'])
+@login_required
+def get_comments(request, post_id):
+    try:
+        comments = Comment.objects.filter(post_id=post_id).select_related('user').order_by('-created_at')
+        data = [{
+            'id': comment.id,
+            'content': comment.content,
+            'user': {'username': comment.user.username},
+            'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'is_owner': comment.user == request.user
+        } for comment in comments]
+        return Response(data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
 @login_required
 @require_POST
 def delete_comment(request):

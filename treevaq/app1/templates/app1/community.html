@@ -47,10 +47,10 @@ const TRENDING_TOPICS = [
 // Main Community Component
 function Community() {
   const [posts, setPosts] = React.useState([]);
-  const [likedPosts, setLikedPosts] = React.useState({}); // State สำหรับเก็บสถานะ Like
+  const [likedPosts, setLikedPosts] = React.useState({});
   const [selectedCategory, setSelectedCategory] = React.useState('All Posts');
   const [showNewPostModal, setShowNewPostModal] = React.useState(false);
-  const [showDropdown, setShowDropdown] = React.useState({}); // State สำหรับ dropdown menu
+  const [showDropdown, setShowDropdown] = React.useState({});
   const [newPost, setNewPost] = React.useState({
     title: '',
     content: '',
@@ -59,6 +59,8 @@ function Community() {
   });
   const [commentTexts, setCommentTexts] = React.useState({});
   const [showCommentForm, setShowCommentForm] = React.useState({});
+  const [comments, setComments] = React.useState({});
+  const [showAllComments, setShowAllComments] = React.useState({});
   const [isDarkMode, setIsDarkMode] = React.useState(false);
   const [error, setError] = React.useState(null);
 
@@ -86,8 +88,8 @@ function Community() {
             likes: post.likes || 0,
             comments: post.comments || 0,
             category: post.category || 'Uncategorized',
-            image: post.image || null,
-            is_owner: post.is_owner || false // เพิ่ม is_owner เพื่อระบุเจ้าของโพสต์
+            image: post.image ? `${window.media_url}${post.image}` : null,
+            is_owner: post.is_owner || false
           }));
           setPosts(formattedPosts);
           setError(null);
@@ -120,6 +122,34 @@ function Community() {
 
     return () => observer.disconnect();
   }, []);
+
+  // Fetch comments for a post
+  const fetchComments = (postId) => {
+    fetch(`/api/community/comments/${postId}/`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log(`Comments fetched for post ${postId}:`, data);
+        setComments(prev => ({
+          ...prev,
+          [postId]: data.map(comment => ({
+            id: comment.id,
+            content: comment.content,
+            username: comment.user?.username || 'Anonymous',
+            created_at: comment.created_at || 'Unknown',
+            is_owner: comment.is_owner || false
+          }))
+        }));
+      })
+      .catch(error => {
+        console.error(`Error fetching comments for post ${postId}:`, error);
+        setError('Failed to load comments. Please try again.');
+      });
+  };
 
   const handleLike = (postId) => {
     const isLiked = likedPosts[postId] || false;
@@ -177,6 +207,36 @@ function Community() {
     });
   };
 
+  const handleDeleteComment = (postId, commentId) => {
+    fetch('/api/community/comment/delete/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({ comment_id: commentId })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to delete comment');
+      }
+      return response.json();
+    })
+    .then(data => {
+      setComments(prev => ({
+        ...prev,
+        [postId]: prev[postId].filter(comment => comment.id !== commentId)
+      }));
+      setPosts(posts.map(post =>
+        post.id === postId ? { ...post, comments: post.comments - 1 } : post
+      ));
+    })
+    .catch(error => {
+      console.error('Error deleting comment:', error);
+      setError('Failed to delete comment. Please try again.');
+    });
+  };
+
   const toggleDropdown = (postId) => {
     setShowDropdown(prev => ({
       ...prev,
@@ -189,6 +249,9 @@ function Community() {
       ...prev,
       [postId]: !prev[postId]
     }));
+    if (!comments[postId]) {
+      fetchComments(postId);
+    }
   };
 
   const handleCommentChange = (postId, text) => {
@@ -200,17 +263,53 @@ function Community() {
 
   const handleSubmitComment = (postId) => {
     if (commentTexts[postId]?.trim()) {
-      setPosts(posts.map(post => 
-        post.id === postId ? { ...post, comments: (post.comments || 0) + 1 } : post
-      ));
-      setCommentTexts(prev => ({
-        ...prev,
-        [postId]: ''
-      }));
-      setShowCommentForm(prev => ({
-        ...prev,
-        [postId]: false
-      }));
+      fetch('/api/community/comment/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+          post_id: postId,
+          comment: commentTexts[postId]
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to post comment');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setComments(prev => ({
+          ...prev,
+          [postId]: [
+            ...(prev[postId] || []),
+            {
+              id: data.comment_id,
+              content: data.content,
+              username: data.user || 'Anonymous',
+              created_at: data.created_at || 'Unknown',
+              is_owner: true
+            }
+          ]
+        }));
+        setPosts(posts.map(post =>
+          post.id === postId ? { ...post, comments: post.comments + 1 } : post
+        ));
+        setCommentTexts(prev => ({
+          ...prev,
+          [postId]: ''
+        }));
+        setShowCommentForm(prev => ({
+          ...prev,
+          [postId]: false
+        }));
+      })
+      .catch(error => {
+        console.error('Error posting comment:', error);
+        setError('Failed to post comment. Please try again.');
+      });
     }
   };
 
@@ -270,7 +369,19 @@ function Community() {
     })
     .then(data => {
       console.log('Post created:', data);
-      setPosts([data, ...posts]);
+      console.log('New post image URL:', data.image); // Debug log for image URL
+      setPosts([{
+        id: data.id,
+        username: data.username || 'Anonymous',
+        title: data.title,
+        content: data.content,
+        timestamp: data.timestamp,
+        likes: data.likes || 0,
+        comments: data.comments || 0,
+        category: data.category,
+        image: data.image || null, // Use backend-provided URL directly
+        is_owner: data.is_owner || true
+      }, ...posts]);
       setNewPost({
         title: '',
         content: '',
@@ -284,6 +395,13 @@ function Community() {
       console.error('Error submitting post:', error);
       setError(error.message || 'Failed to create post. Please try again.');
     });
+  };
+
+  const toggleShowAllComments = (postId) => {
+    setShowAllComments(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
   };
 
   const filteredPosts = selectedCategory === 'All Posts' 
@@ -404,9 +522,10 @@ function Community() {
                   {post.image && (
                     <div className="mb-4">
                       <img 
-                        src={`${media_url}${post.image}`} 
+                        src={post.image} 
                         alt={post.title} 
                         className="w-full h-auto rounded-lg"
+                        onError={(e) => console.error('Error loading image:', post.image)}
                       />
                     </div>
                   )}
@@ -454,6 +573,44 @@ function Community() {
                       >
                         Post Comment
                       </button>
+                    </div>
+                  )}
+
+                  {/* Comments Section */}
+                  {comments[post.id] && (
+                    <div className="mt-4">
+                      {(showAllComments[post.id] ? comments[post.id] : comments[post.id].slice(0, 5)).map(comment => (
+                        <div key={comment.id} className={`p-3 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                                <span className="text-green-800 font-bold">{comment.username.charAt(0)}</span>
+                              </div>
+                              <div>
+                                <p className={`font-bold ${getTextClass()}`}>{comment.username}</p>
+                                <p className="text-xs text-gray-500">{comment.created_at}</p>
+                              </div>
+                            </div>
+                            {comment.is_owner && (
+                              <button
+                                onClick={() => handleDeleteComment(post.id, comment.id)}
+                                className="text-red-600 hover:text-red-800"
+                              >
+                                <i className="fas fa-trash"></i>
+                              </button>
+                            )}
+                          </div>
+                          <p className={`mt-2 ${getSecondaryTextClass()}`}>{comment.content}</p>
+                        </div>
+                      ))}
+                      {comments[post.id].length > 5 && (
+                        <button
+                          className={`mt-2 text-green-600 hover:text-green-700`}
+                          onClick={() => toggleShowAllComments(post.id)}
+                        >
+                          {showAllComments[post.id] ? 'Show less' : `Show ${comments[post.id].length - 5} more comments`}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -535,6 +692,7 @@ function Community() {
                 <label className={`block mb-1 ${getTextClass()}`}>Image (Optional)</label>
                 <input
                   type="file"
+                  accept="image/*"
                   onChange={handleImageUpload}
                   className={`w-full p-2 border rounded ${
                     isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
