@@ -12,4 +12,14 @@ djangorestframework
 social-auth-app-django
 python-dotenv
 django-cors-headers
-qrcode 
+# libscrc
+qrcode==7.4.2
+# promptpay==0.3
+
+CRC-ITU==0.3.3
+crc16==0.1.1
+pypng==0.20220715.0
+pypromptpay==0.5.3
+qrcode==7.4.2
+typing_extensions==4.8.0
+pytz

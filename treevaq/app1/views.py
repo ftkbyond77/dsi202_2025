@@ -26,10 +26,13 @@ from django.contrib.auth.forms import PasswordChangeForm
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
 import qrcode
-from io import BytesIO
-import base64
 import os
-import traceback
+from app1.pypromptpay import qr_code
+import logging
+from django.conf import settings
+
+# Initialize logger
+logger = logging.getLogger(__name__)
 
 class SignupView(generic.CreateView):
     form_class = UserCreationForm
@@ -347,35 +350,55 @@ def checkout(request):
 def payment(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     payment, created = Payment.objects.get_or_create(order=order, defaults={'amount': order.total})
-    
-    promptpay_id = "0801857971"
-    amount = float(order.total)
-    qr_payload = f"00020101021129370016A0000006770101110213{promptpay_id}5802TH540{amount:.2f}53037646304"
-    qr = qrcode.QRCode(version=1, box_size=10, border=4)
-    qr.add_data(qr_payload)
-    qr.make(fit=True)
-    
-    img = qr.make_image(fill_color="black", back_color="white")
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-    qr_code_url = f"data:image/png;base64,{qr_code_base64}"
-    
+
+    # Handle receipt upload
     if request.method == 'POST':
         receipt = request.FILES.get('receipt')
         if receipt:
             payment.receipt = receipt
+            payment.status = 'PENDING'
             payment.save()
             order.status = 'PAID'
             order.save()
-            payment.status = 'PENDING'
-            payment.save()
-    
-    return render(request, 'app1/payment.html', {
+            logger.info(f"Receipt uploaded for payment {payment.id}")
+
+    # Generate PromptPay QR code
+    promptpay_id = "0801857971"  # Mobile number
+    amount = f"{order.total:.2f}"  # Ensure two decimal places
+    currency = "THB"
+    qr_code_dir = os.path.join(settings.MEDIA_ROOT, 'QRCODE')
+    try:
+        if not os.path.exists(qr_code_dir):
+            os.makedirs(qr_code_dir)
+        qr_filename = f"qrcode_{promptpay_id}_{currency}_{datetime.now().strftime('%Y%m%d%H%M%S')}.PNG"
+        qr_path = os.path.join(qr_code_dir, qr_filename)
+        qr_success = qr_code(
+            account=promptpay_id,
+            one_time=True,
+            path_qr_code=qr_path,
+            country="TH",
+            money=amount,
+            currency=currency
+        )
+        if qr_success:
+            logger.debug(f"QR code generated at {qr_path} for amount {amount}")
+        else:
+            logger.error(f"Failed to generate QR code for order {order.id}")
+            messages.error(request, "Failed to generate QR code. Please try again.")
+    except Exception as e:
+        logger.error(f"QR code generation failed for order {order.id}: {str(e)}")
+        messages.error(request, "Error generating QR code. Please contact support.")
+        qr_filename = None
+
+    # Relative path for template
+    qr_url = os.path.join(settings.MEDIA_URL, 'QRCODE', qr_filename) if qr_filename else None
+
+    context = {
         'order': order,
         'payment': payment,
-        'qr_code_url': qr_code_url,
-    })
+        'qr_code_url': qr_url,
+    }
+    return render(request, 'app1/payment.html', context)
 
 @login_required
 def order_history(request):
