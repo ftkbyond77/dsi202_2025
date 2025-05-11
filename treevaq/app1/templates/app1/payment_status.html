@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Status - Treevaq</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .receipt-img img {
+            max-width: 300px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Payment Status for Order #{{ payment.order.id }}</h1>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="mb-3">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Payment Details -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Payment Details</h5>
+                <p class="card-text"><strong>Order ID:</strong> {{ payment.order.id }}</p>
+                <p class="card-text"><strong>Amount:</strong> {{ payment.amount|floatformat:2 }} THB</p>
+                <p class="card-text"><strong>Order Status:</strong> {{ payment.order.status|title }}</p>
+                <p class="card-text"><strong>Payment Status:</strong> 
+                    {% if payment.status == 'PENDING' %}
+                        Pending Verification
+                    {% elif payment.status == 'APPROVED' %}
+                        Approved
+                    {% elif payment.status == 'VERIFIED' %}
+                        Verified
+                    {% elif payment.status == 'PAID' %}
+                        Paid
+                    {% elif payment.status == 'REJECTED' %}
+                        Rejected
+                    {% elif payment.status == 'FAILED' %}
+                        Failed
+                    {% else %}
+                        {{ payment.status|title }}
+                    {% endif %}
+                </p>
+                <p class="card-text"><strong>Created At:</strong> {{ payment.created_at|date:"Y-m-d H:i:s" }}</p>
+                <p class="card-text"><strong>Updated At:</strong> {{ payment.updated_at|date:"Y-m-d H:i:s" }}</p>
+                {% if payment.receipt %}
+                    <div class="receipt-img">
+                        <h6>Receipt</h6>
+                        <img src="{{ payment.receipt.url }}" alt="Receipt" class="img-fluid">
+                    </div>
+                {% else %}
+                    <p class="text-muted">No receipt uploaded.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Status Update Form -->
+        {% if user.is_superuser %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Update Payment Status</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select name="status" id="status" class="form-select" required>
+                                <option value="PENDING" {% if payment.status == 'PENDING' %}selected{% endif %}>Pending</option>
+                                <option value="APPROVED" {% if payment.status == 'APPROVED' %}selected{% endif %}>Approved</option>
+                                <option value="VERIFIED" {% if payment.status == 'VERIFIED' %}selected{% endif %}>Verified</option>
+                                <option value="PAID" {% if payment.status == 'PAID' %}selected{% endif %}>Paid</option>
+                                <option value="REJECTED" {% if payment.status == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                                <option value="FAILED" {% if payment.status == 'FAILED' %}selected{% endif %}>Failed</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                        <a href="{% url 'app1:order_history' %}" class="btn btn-secondary ms-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Navigation -->
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'app1:order_history' %}" class="btn btn-outline-primary">View Order History</a>
+            <a href="{% url 'app1:home' %}" class="btn btn-outline-primary">Return to Home</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

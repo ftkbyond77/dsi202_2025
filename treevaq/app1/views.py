@@ -25,11 +25,11 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
 import qrcode
 import os
 from app1.pypromptpay import qr_code
 import logging
-from django.conf import settings
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -361,6 +361,7 @@ def payment(request, order_id):
             order.status = 'PAID'
             order.save()
             logger.info(f"Receipt uploaded for payment {payment.id}")
+            messages.success(request, "Receipt uploaded successfully!")
 
     # Generate PromptPay QR code
     promptpay_id = "0801857971"  # Mobile number
@@ -401,9 +402,68 @@ def payment(request, order_id):
     return render(request, 'app1/payment.html', context)
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser)
+def payment_status(request, payment_id):
+    payment = get_object_or_404(Payment, id=payment_id)
+
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        if new_status in dict(Payment.STATUS_CHOICES).keys():
+            old_status = payment.status
+            payment.status = new_status
+            payment.save()
+            logger.info(f"Payment {payment.id} status changed from {old_status} to {new_status} by {request.user.username}")
+            messages.success(request, f"Payment status updated to {new_status}.")
+            # Sync order status if payment is APPROVED or VERIFIED
+            if new_status in ['APPROVED', 'VERIFIED']:
+                payment.order.status = 'PAID'
+                payment.order.save()
+            elif new_status == 'REJECTED':
+                payment.order.status = 'CANCELLED'
+                payment.order.save()
+        else:
+            logger.error(f"Invalid status {new_status} attempted for payment {payment.id}")
+            messages.error(request, "Invalid status selected.")
+        return redirect('app1:payment_status', payment_id=payment.id)
+
+    context = {
+        'payment': payment,
+    }
+    return render(request, 'app1/payment_status.html', context)
+
+@login_required
 def order_history(request):
     orders = Order.objects.filter(user=request.user).order_by('-order_date')
     return render(request, 'app1/order_history.html', {'orders': orders})
+
+@login_required
+def order_history_main(request):
+    orders = Order.objects.filter(user=request.user).order_by('-order_date')
+    return render(request, 'app1/order_history_main.html', {'orders': orders})
+
+@login_required
+def order_view_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    order_items = OrderItem.objects.filter(order=order)
+    return render(request, 'app1/order_view_detail.html', {'order': order, 'order_items': order_items})
+
+@login_required
+def pending_payments(request):
+    orders = Order.objects.filter(
+        user=request.user,
+        status='PENDING',
+        payment__status='PENDING'
+    ).order_by('-order_date')
+    return render(request, 'app1/pending_payments.html', {'orders': orders})
+
+@login_required
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user, status='PENDING', payment__status='PENDING')
+    if request.method == 'POST':
+        order.delete()
+        messages.success(request, f'Order #{order_id} has been cancelled.')
+        return redirect('app1:pending_payments')
+    return redirect('app1:pending_payments')
 
 def blog(request):
     articles = Blog.objects.all()

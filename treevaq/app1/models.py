@@ -32,14 +32,17 @@ class Payment(models.Model):
     receipt = models.ImageField(upload_to='payment_receipts/', null=True, blank=True)
     status = models.CharField(max_length=20, choices=[
         ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
         ('VERIFIED', 'Verified'),
+        ('PAID', 'Paid'),
         ('REJECTED', 'Rejected'),
+        ('FAILED', 'Failed'),
     ], default='PENDING')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return f"Payment for Order {self.order.id}"
-
 
 class Product(models.Model):
     name = models.CharField(max_length=200)
@@ -71,16 +74,15 @@ class CarbonFootprint(models.Model):
 
     def __str__(self):
         return f"Carbon Footprint for {self.product.name}"
-    
-    
+
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
+
     def __str__(self):
         return f"{self.quantity} x {self.product.name} for Order {self.order.id}"
-    
 
 class Blog(models.Model):
     title = models.CharField(max_length=200)
@@ -94,13 +96,13 @@ class Blog(models.Model):
 
     def __str__(self):
         return self.title
-    
+
 class CommunityCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
-    
+
     @classmethod
     def get_default_category(cls):
         try:
@@ -127,10 +129,6 @@ class CommunityPost(models.Model):
     comments_count = models.IntegerField(default=0)
     image = models.ImageField(upload_to='community_images/', null=True, blank=True)
 
-    # def save(self, *args, **kwargs):
-    #     if not self.slug:
-    #         self.slug = slugify(self.title)
-    #     super().save(*args, **kwargs)
     def save(self, *args, **kwargs):
         if not self.slug:
             base_slug = slugify(self.title)
@@ -148,11 +146,11 @@ class CommunityPost(models.Model):
     @property
     def likes_count(self):
         return self.likes.count()
-    
+
     @property
     def comments_count(self):
         return self.comments.count()
-    
+
     def get_absolute_url(self):
         return reverse('post_detail', kwargs={'slug': self.slug})
 
@@ -173,7 +171,7 @@ class PostLike(models.Model):
 
     class Meta:
         unique_together = ('user', 'post')
-    
+
     def __str__(self):
         return f"{self.user.username} likes {self.post.title}"
 
@@ -185,7 +183,7 @@ class Review(models.Model):
         (4, '4 - Very Good'),
         (5, '5 - Excellent'),
     ]
-    
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
     rating = models.IntegerField(choices=RATING_CHOICES)
@@ -199,7 +197,7 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s review of {self.product.name} ({self.rating}/5)"
-    
+
     def delete(self, *args, **kwargs):
         self.is_active = False
         self.save()
@@ -214,7 +212,7 @@ class Question(models.Model):
 
     def __str__(self):
         return self.title
-    
+
     @property
     def answers_count(self):
         return self.answers.count()

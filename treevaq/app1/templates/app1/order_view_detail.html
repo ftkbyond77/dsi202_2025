@@ -1,0 +1,63 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+{% block title %}Order #{{ order.id }} Details - Treevaq{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">Order #{{ order.id }} Details</h1>
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="text-gray-600 dark:text-gray-400"><strong>Order Date:</strong> {{ order.order_date|date:"F d, Y" }}</p>
+                <p class="text-gray-600 dark:text-gray-400"><strong>Total:</strong> {{ order.total|floatformat:2 }} THB</p>
+                <p class="text-gray-600 dark:text-gray-400"><strong>Status:</strong> {{ order.status }}</p>
+                <p class="text-gray-600 dark:text-gray-400"><strong>Payment Status:</strong> {{ order.payment.status }}</p>
+            </div>
+            {% if order.status == 'PENDING' and order.payment.status == 'PENDING' %}
+                <div class="flex space-x-4">
+                    <a href="{% url 'app1:payment' order_id=order.id %}" class="text-green-600 hover:underline dark:text-green-500 dark:hover:text-green-400">Pay Now</a>
+                    <form action="{% url 'app1:cancel_order' order_id=order.id %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" onclick="return confirm('Are you sure you want to cancel this order?')" class="text-red-600 hover:underline dark:text-red-500 dark:hover:text-red-400">Cancel</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if order_items %}
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Order Items</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                <thead>
+                    <tr class="bg-gray-100 dark:bg-gray-700">
+                        <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Image</th>
+                        <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Product</th>
+                        <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Quantity</th>
+                        <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Price (THB)</th>
+                        <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Subtotal (THB)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order_items %}
+                        <tr class="border-b dark:border-gray-700">
+                            <td class="px-4 py-2">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }} image" class="w-16 h-16 object-cover rounded">
+                                {% else %}
+                                    <img src="{% static 'app1/images/placeholder.png' %}" alt="Placeholder image" class="w-16 h-16 object-cover rounded">
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-2 text-gray-600 dark:text-gray-400">{{ item.product.name }}</td>
+                            <td class="px-4 py-2 text-gray-600 dark:text-gray-400">{{ item.quantity }}</td>
+                            <td class="px-4 py-2 text-gray-600 dark:text-gray-400">{{ item.price|floatformat:2 }}</td>
+                            <td class="px-4 py-2 text-gray-600 dark:text-gray-400">{{ item.subtotal|floatformat:2 }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="text-gray-600 dark:text-gray-400">No items in this order.</p>
+    {% endif %}
+</div>
+{% endblock %}

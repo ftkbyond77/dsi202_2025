@@ -1,0 +1,45 @@
+{% extends 'app1/base.html' %}
+{% block title %}Order History - Treevaq{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">Order History</h1>
+    {% if orders %}
+        <div class="overflow-x-auto">
+            <table class="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                <thead>
+                    <tr class="bg-gray-100 dark:bg-gray-700">
+                        <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Order ID</th>
+                        <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Total (THB)</th>
+                        <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Date</th>
+                        <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Status</th>
+                        <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr class="border-b dark:border-gray-700">
+                            <td class="px-4 py-2 text-gray-600 dark:text-gray-400">#{{ order.id }}</td>
+                            <td class="px-4 py-2 text-gray-600 dark:text-gray-400">{{ order.total|floatformat:2 }}</td>
+                            <td class="px-4 py-2 text-gray-600 dark:text-gray-400">{{ order.order_date|date:"F d, Y" }}</td>
+                            <td class="px-4 py-2 text-gray-600 dark:text-gray-400">{{ order.status }}</td>
+                            <td class="px-4 py-2 space-x-2">
+                                {% if order.status == 'PENDING' and order.payment.status == 'PENDING' %}
+                                    <a href="{% url 'app1:payment' order_id=order.id %}" class="text-green-600 hover:underline dark:text-green-500 dark:hover:text-green-400">Pay Now</a>
+                                    <form action="{% url 'app1:cancel_order' order_id=order.id %}" method="post" class="inline">
+                                        {% csrf_token %}
+                                        <button type="submit" onclick="return confirm('Are you sure you want to cancel this order?')" class="text-red-600 hover:underline dark:text-red-500 dark:hover:text-red-400">Cancel</button>
+                                    </form>
+                                {% else %}
+                                    <a href="#" class="text-blue-600 hover:underline dark:text-blue-500 dark:hover:text-blue-400">View Details</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="text-gray-600 dark:text-gray-400">You have no orders.</p>
+    {% endif %}
+</div>
+{% endblock %}

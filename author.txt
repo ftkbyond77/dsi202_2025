@@ -1,0 +1,16 @@
+Login System (Google)
+    you have to add .env file for get keys
+    
+    - SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
+    - SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
+
+
+
+Payment System (Promptpay QR Code) 
+    package crc16 need  C++ compiler (Microsoft Visual C++ Build Tools) for build wheel from source code
+    
+    - C++ build tools
+    - Windows 11 SDK (if use windows 11)
+
+    other:
+    - C++ for linux development

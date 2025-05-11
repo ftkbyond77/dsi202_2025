@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +9,6 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Include Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-
     <!-- Font Awesome for social icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Custom Styles -->
@@ -86,6 +86,28 @@
         body.dark-mode .bg-white {
             background-color: #2d3748; /* Adjust dropdown background in Dark Mode */
         }
+        /* Submenu Styles */
+        .dropdown-submenu {
+            position: relative;
+        }
+        .dropdown-submenu .dropdown-menu {
+            top: 0;
+            left: 100%;
+            margin-left: 0.125rem;
+            display: none;
+        }
+        .dropdown-submenu:hover .dropdown-menu {
+            display: block;
+        }
+        body.dark-mode .dropdown-menu {
+            background-color: #2d3748;
+        }
+        body.dark-mode .dropdown-menu a {
+            color: #e2e8f0;
+        }
+        body.dark-mode .dropdown-menu a:hover {
+            background-color: #4a5568;
+        }
     </style>
     <!-- Include Alpine.js -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -126,6 +148,25 @@
                         {% if user.is_authenticated %}
                             <a href="{% url 'app1:account' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Account</a>
                             <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a>
+                            <div x-data="{ ordersOpen: false }" class="dropdown-submenu">
+                                <a @click.prevent="ordersOpen = !ordersOpen" href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex justify-between items-center">
+                                    Orders
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </a>
+                                <div x-show="ordersOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="dropdown-menu absolute w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                                    <a href="{% url 'app1:order_history_main' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Order History</a>
+                                    {% if has_unpaid_orders %}
+                                        <a href="{% url 'app1:pending_payments' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Pending Payments</a>
+                                    {% endif %}
+                                    {% if user.is_superuser %}
+                                        {% for order in user.orders.all %}
+                                            {% if order.payment %}
+                                                <a href="{% url 'app1:payment_status' payment_id=order.payment.id %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Payment #{{ order.payment.id }}</a>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
                             <a href="{% url 'logout' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Log Out</a>
                         {% else %}
                             <a href="{% url 'login' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Sign In</a>
@@ -141,14 +182,23 @@
         </div>
     </nav>
 
-    <!-- Main Content - added pt-16 to account for navbar height -->
-    <div class="container mx-auto pt-16 px-4">
+    <!-- Messages -->
+    <div class="container mx-auto px-4 pt-16">
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <!-- Main Content -->
         {% block content %}
         {% endblock %}
     </div>
 
     <!-- JavaScript -->
-    {% load static %}
     <script src="{% static 'app1/dark-mode.js' %}"></script>
     <script src="{% static 'app1/wishlist.js' %}"></script>
 </body>
