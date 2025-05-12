@@ -121,6 +121,14 @@
         .hidden {
             display: none;
         }
+        .status-note {
+            background-color: #f0ad4e;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -142,7 +150,13 @@
             <h3>Order Summary</h3>
             <p>Order #{{ order.id }}</p>
             <p>Total Amount: {{ order.total|floatformat:2 }} THB</p>
-            <p>Order Status: {{ order.status|title }}</p>
+            <p>Order Status: 
+                {% if payment.receipt %}
+                    Pending Verification
+                {% else %}
+                    {{ order.status|title }}
+                {% endif %}
+            </p>
         </div>
 
         <div class="payment-section">
@@ -179,6 +193,10 @@
                 <div class="receipt-uploaded">
                     <h3>Uploaded Receipt</h3>
                     <img src="{{ payment.receipt.url }}" alt="Receipt">
+                    
+                    <div class="status-note">
+                        Your payment is pending verification. Our team will review and update the status soon.
+                    </div>
                 </div>
             {% endif %}
         </div>
@@ -210,7 +228,7 @@
 
         // Complete payment function
         function showCompletionMessage() {
-            alert('Payment Completed Successfully!');
+            alert('Your payment is pending verification. Our team will review and update the status soon.');
         }
 
         // Simple countdown timer
