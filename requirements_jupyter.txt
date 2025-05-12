@@ -13,6 +13,7 @@ django-cors-headers
 qrcode==7.4.2
 # promptpay==0.3
 
+# # need C++ build tools
 CRC-ITU==0.3.3
 crc16==0.1.1
 pypng==0.20220715.0
