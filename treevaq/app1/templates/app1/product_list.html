@@ -6,55 +6,287 @@
 {% block head_placeholder %}
     <meta name="description" content="Explore sustainable products on Treevaq.">
     <style>
+        /* Hover Lift Effect */
         .hover-lift {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .hover-lift:hover {
-            transform: translateY(-8px); /* Increased lift for visibility */
-            box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.2), 0 6px 8px -4px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
+            transform: translateY(-8px);
+            box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.2), 0 6px 8px -4px rgba(0, 0, 0, 0.1);
         }
-        /* Adjust for Dark Mode */
+        
+        /* Dark Mode Adjustments for Hover Lift */
         body.dark-mode .hover-lift:hover {
-            box-shadow: 0 15px 20px -5px rgba(255, 255, 255, 0.2), 0 6px 8px -4px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 20px -5px rgba(255, 255, 255, 0.1), 0 6px 8px -4px rgba(255, 255, 255, 0.05);
+        }
+
+        /* Sidebar Filter Styles */
+        .filter-sidebar {
+            background-color: #f9fafb;
+            border-right: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            height: 100%;
+        }
+        
+        /* Dark Mode Adjustments for Sidebar */
+        body.dark-mode .filter-sidebar {
+            background-color: #2d3748;
+            border-right: 1px solid #4a5568;
+        }
+
+        /* Checkbox and Radio Button Styles */
+        .custom-checkbox input:checked + label,
+        .custom-radio input:checked + label {
+            background-color: #e6f3ec;
+            color: #0f7b47;
+        }
+
+        /* Dark Mode Adjustments for Checkbox */
+        body.dark-mode .custom-checkbox input:checked + label,
+        body.dark-mode .custom-radio input:checked + label {
+            background-color: #2f855a;
+            color: #68d391;
+        }
+
+        /* Dark Mode Adjustments for Checkbox Border and Hover */
+        body.dark-mode .custom-checkbox label {
+            border-color: #4a5568;
+        }
+        body.dark-mode .custom-checkbox label:hover {
+            background-color: #4a5568;
+        }
+
+        /* Dark Mode Adjustments for Input Fields */
+        body.dark-mode .filter-sidebar input[type="text"],
+        body.dark-mode .filter-sidebar input[type="number"] {
+            background-color: #2a2f3a;
+            border-color: #4a5568;
+            color: #e2e8f0;
+        }
+        body.dark-mode .filter-sidebar input[type="text"]::placeholder,
+        body.dark-mode .filter-sidebar input[type="number"]::placeholder {
+            color: #a0aec0;
+        }
+        body.dark-mode .filter-sidebar input[type="text"]:focus,
+        body.dark-mode .filter-sidebar input[type="number"]:focus {
+            border-color: #68d391;
+            ring-color: #68d391;
+        }
+
+        /* Dark Mode Adjustments for Apply Filters Button */
+        body.dark-mode .filter-sidebar button[type="submit"] {
+            background-color: #276749;
+        }
+        body.dark-mode .filter-sidebar button[type="submit"]:hover {
+            background-color: #22543d;
+        }
+
+        /* Dark Mode Adjustments for Clear Filters Link */
+        body.dark-mode .filter-sidebar a.text-green-600 {
+            color: #68d391;
+        }
+        body.dark-mode .filter-sidebar a.text-green-600:hover {
+            color: #38a169;
+        }
+
+        /* Sustainable Badge Styles */
+        .sustainable-badge {
+            color: #0f7b47; /* Green text for light mode */
+            background: none; /* No background */
+            font-size: 0.75rem; /* Matches text-xs */
+            font-weight: 500; /* Matches font-medium */
+            padding: 0.125rem 0.5rem; /* Minimal padding */
+            border-radius: 0.25rem; /* Matches rounded */
+            display: inline-block;
+        }
+
+        /* Dark Mode Adjustments for Sustainable Badge */
+        body.dark-mode .sustainable-badge {
+            color: #68d391; /* Matches dark mode text-green-600 from base.html */
         }
     </style>
 {% endblock %}
 
 {% block content %}
-<h2 class="text-2xl font-semibold text-gray-800 mb-6 animate-fade-in">Our Sustainable Products</h2>
+<div class="flex">
+    <!-- Sidebar Filter -->
+    <aside class="filter-sidebar w-64 hidden md:block">
+        <form method="get" action="{% url 'app1:product_list' %}" id="filter-form">
+            <div class="space-y-6">
+                <!-- Search Input -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input type="text" name="q" value="{{ query }}" 
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" 
+                           placeholder="Search products...">
+                </div>
 
-<!-- Search Form -->
-<div class="mb-6">
-    <form method="get" action="{% url 'app1:product_list' %}" class="flex gap-3">
-        <input type="text" name="q" value="{{ query }}" class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Search by name or description..." aria-label="Search">
-        <button type="submit" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition animate-bounce-slow">Search</button>
-    </form>
-</div>
+                <!-- Sustainability Filter -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-900 mb-3">Sustainability</h3>
+                    <div class="space-y-2 custom-checkbox">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="sustainable" name="sustainable" value="true" 
+                                   {% if sustainable_filter %}checked{% endif %}
+                                   class="hidden peer">
+                            <label for="sustainable" 
+                                   class="w-full py-2 px-3 rounded-lg border border-gray-300 
+                                          cursor-pointer peer-checked:bg-green-50 peer-checked:border-green-500
+                                          hover:bg-gray-50 transition">
+                                Sustainable Products Only
+                            </label>
+                        </div>
+                    </div>
+                </div>
 
-<!-- Product List -->
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-    {% for product in products %}
-    <div class="flex flex-col bg-white rounded-lg shadow-lg hover-lift h-full">
-        {% if product.image %}
-            <img src="{{ product.image.url }}" class="w-full h-48 object-cover" alt="{{ product.name }}">
-        {% else %}
-            <img src="https://via.placeholder.com/200" class="w-full h-48 object-cover" alt="No image">
-        {% endif %}
-        <div class="p-4 flex flex-col flex-grow">
-            <h5 class="text-lg font-bold text-gray-900 mb-2 line-clamp-2 min-h-[3rem]">{{ product.name }}</h5>
-            <p class="text-sm text-gray-700 mb-2">Price: ${{ product.price }}</p>
-            {% if product.is_sustainable %}
-                <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded mb-4">Sustainable</span>
-            {% else %}
-                <div class="mb-4"></div> <!-- Spacer when no sustainable badge -->
+                <!-- Price Range Filter -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-900 mb-3">Price Range</h3>
+                    <div class="flex space-x-2">
+                        <input type="number" name="min_price" placeholder="Min" 
+                               value="{{ min_price }}"
+                               class="w-1/2 border border-gray-300 rounded-lg px-3 py-2 
+                                      focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <input type="number" name="max_price" placeholder="Max" 
+                               value="{{ max_price }}"
+                               class="w-1/2 border border-gray-300 rounded-lg px-3 py-2 
+                                      focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                </div>
+
+                <!-- Apply Filters Button -->
+                <div>
+                    <button type="submit" 
+                            class="w-full bg-green-600 text-white font-semibold py-2 px-4 
+                                   rounded-lg hover:bg-green-700 transition">
+                        Apply Filters
+                    </button>
+                </div>
+
+                <!-- Clear Filters Link -->
+                {% if query or sustainable_filter or min_price or max_price %}
+                <div class="text-center">
+                    <a href="{% url 'app1:product_list' %}" 
+                       class="text-sm text-green-600 hover:text-green-800 transition">
+                        Clear All Filters
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-6">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6 animate-fade-in">
+            Our Sustainable Products
+            {% if query or sustainable_filter or min_price or max_price %}
+                <span class="text-sm text-gray-600 ml-2">
+                    ({{ products.count }} results)
+                </span>
+            {% endif %}
+        </h2>
+
+        <!-- Mobile Filter Toggle (Hidden on larger screens) -->
+        <div class="md:hidden mb-4">
+            <button id="mobile-filter-toggle" 
+                    class="w-full bg-green-600 text-white font-semibold py-2 px-4 
+                           rounded-lg hover:bg-green-700 transition">
+                Filter Products
+            </button>
+        </div>
+
+        <!-- Mobile Filter Dropdown (Hidden by default) -->
+        <div id="mobile-filter-container" class="hidden mb-6">
+            <!-- Mobile filter form (same as sidebar, can be dynamically inserted via JS if needed) -->
+        </div>
+
+        <!-- Product Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for product in products %}
+            <div class="flex flex-col bg-white rounded-lg shadow-lg hover-lift h-full">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" class="w-full h-48 object-cover rounded-t-lg" alt="{{ product.name }}">
+                {% else %}
+                    <img src="{% static 'images/placeholder-product.png' %}" 
+                         class="w-full h-48 object-cover rounded-t-lg" 
+                         alt="No image available">
+                {% endif %}
+                <div class="p-4 flex flex-col flex-grow">
+                    <h5 class="text-lg font-bold text-gray-900 mb-2 line-clamp-2 min-h-[3rem]">
+                        {{ product.name }}
+                    </h5>
+                    <p class="text-sm text-gray-700 mb-2">
+                        Price: ${{ product.price|floatformat:2 }}
+                    </p>
+                    {% if product.is_sustainable %}
+                        <span class="sustainable-badge mb-4">
+                            Sustainable
+                        </span>
+                    {% else %}
+                        <div class="mb-4"></div>
+                    {% endif %}
+                </div>
+                <div class="p-4 mt-auto">
+                    <a href="{% url 'app1:product_detail' product.pk %}" 
+                       class="block text-center bg-green-600 text-white font-semibold 
+                              py-2 rounded-lg hover:bg-green-700 transition">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-gray-600 col-span-full animate-fade-in">
+                No products found matching your search criteria.
+            </p>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination (if needed) -->
+        {% if is_paginated %}
+        <div class="flex justify-center mt-8 space-x-2">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sustainable %}&sustainable=true{% endif %}" 
+                   class="px-4 py-2 border rounded-lg hover:bg-gray-100">
+                    Previous
+                </a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="px-4 py-2 border rounded-lg bg-green-600 text-white">
+                        {{ num }}
+                    </span>
+                {% else %}
+                    <a href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sustainable %}&sustainable=true{% endif %}" 
+                       class="px-4 py-2 border rounded-lg hover:bg-gray-100">
+                        {{ num }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sustainable %}&sustainable=true{% endif %}" 
+                   class="px-4 py-2 border rounded-lg hover:bg-gray-100">
+                    Next
+                </a>
             {% endif %}
         </div>
-        <div class="p-4 mt-auto">
-            <a href="{% url 'app1:product_detail' product.pk %}" class="block text-center bg-green-600 text-white font-semibold py-2 rounded-lg hover:bg-green-700 transition">View Details</a>
-        </div>
-    </div>
-    {% empty %}
-    <p class="text-gray-600 col-span-full animate-fade-in">No products found matching your search.</p>
-    {% endfor %}
+        {% endif %}
+    </main>
 </div>
+
+<!-- Optional Mobile Filter Toggle JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileFilterToggle = document.getElementById('mobile-filter-toggle');
+    const mobileFilterContainer = document.getElementById('mobile-filter-container');
+
+    if (mobileFilterToggle && mobileFilterContainer) {
+        mobileFilterToggle.addEventListener('click', function() {
+            mobileFilterContainer.classList.toggle('hidden');
+        });
+    }
+});
+</script>
 {% endblock %}

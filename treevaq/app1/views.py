@@ -160,23 +160,58 @@ class OrderHistoryView(APIView):
 def account_view(request):
     return render(request, 'app1/account.html')
 
+
 class ProductListView(ListView):
     model = Product
     template_name = 'app1/product_list.html'
     context_object_name = 'products'
+    paginate_by = 12  # Add pagination
+
     def get_queryset(self):
-        query = self.request.GET.get('q', '').strip()
-        sustainable_filter = self.request.GET.get('sustainable', False)
+        # Start with base queryset
         queryset = super().get_queryset()
+
+        # Search query
+        query = self.request.GET.get('q', '').strip()
         if query:
-            queryset = queryset.filter(Q(name__icontains=query) | Q(description__icontains=query))
+            queryset = queryset.filter(
+                Q(name__icontains=query) | 
+                Q(description__icontains=query)
+            )
+
+        # Sustainability filter
+        sustainable_filter = self.request.GET.get('sustainable', False)
         if sustainable_filter:
             queryset = queryset.filter(is_sustainable=True)
+
+        # Price range filter
+        try:
+            min_price = float(self.request.GET.get('min_price', 0))
+            max_price = float(self.request.GET.get('max_price', float('inf')))
+            
+            # Filter by price range if both are provided
+            if min_price > 0 or max_price < float('inf'):
+                queryset = queryset.filter(
+                    price__gte=min_price,
+                    price__lte=max_price
+                )
+        except (ValueError, TypeError):
+            # If price conversion fails, ignore price filtering
+            pass
+
         return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
+        # Pass filter parameters to template
         context['query'] = self.request.GET.get('q', '')
         context['sustainable_filter'] = self.request.GET.get('sustainable', False)
+        
+        # Price range parameters
+        context['min_price'] = self.request.GET.get('min_price', '')
+        context['max_price'] = self.request.GET.get('max_price', '')
+
         return context
 
 class ProductDetailView(DetailView):
