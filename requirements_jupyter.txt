@@ -21,3 +21,14 @@ pypromptpay==0.5.3
 qrcode==7.4.2
 typing_extensions==4.8.0
 pytz
+
+numpy>=1.24.0,<1.27
+torch==2.0.1
+transformers==4.40.0
+
+# numpy>=1.23,<1.27
+
+# torch==2.2.0+cpu
+# -f https://download.pytorch.org/whl/torch_stable.html
+
+# transformers==4.40.0

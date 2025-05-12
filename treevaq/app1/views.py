@@ -836,3 +836,44 @@ class ProductRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
         if self.request.user != serializer.instance.seller:
             raise permissions.PermissionDenied("You can only update your own products.")
         serializer.save()
+    
+
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import logging
+from . import chatbot_utils
+
+logger = logging.getLogger(__name__)
+
+# Load model when Django starts - this will happen only once
+try:
+    model, tokenizer = chatbot_utils.load_model()
+    logger.info("Chatbot model loaded on server startup")
+except Exception as e:
+    logger.error(f"Failed to load model on startup: {str(e)}")
+
+@csrf_exempt
+@require_POST
+def chatbot_api(request):
+    """API endpoint to handle chatbot requests"""
+    try:
+        data = json.loads(request.body)
+        user_message = data.get('message', '')
+        
+        if not user_message.strip():
+            return JsonResponse({'status': 'error', 'error': 'Message cannot be empty'}, status=400)
+        
+        response = chatbot_utils.generate_response(
+            prompt=user_message,
+            max_length=150,
+            temperature=0.7
+        )
+        
+        return JsonResponse({'status': 'success', 'response': response})
+    
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'error': 'Invalid JSON data'}, status=400)
+    
+    except Exception as e:
+        logger.error(f"Error in chatbot API: {str(e)}")
+        return JsonResponse({'status': 'error', 'error': 'An error occurred while processing your request'}, status=500)

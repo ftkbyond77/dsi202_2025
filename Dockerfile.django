@@ -1,18 +1,55 @@
+# FROM python:3.9-slim
+
+# RUN apt-get update && apt-get install -y \
+#     build-essential \
+#     libpq-dev \
+#     && rm -rf /var/lib/apt/lists/*
+
+# WORKDIR /usr/src/app
+
+# COPY requirements_django.txt /usr/src/app/
+# RUN pip install --no-cache-dir -r requirements_django.txt
+
+# COPY . /usr/src/app/
+
+# RUN chmod +x /usr/src/app/entrypoint.sh
+
+# EXPOSE 8000
+
+# CMD ["/usr/src/app/entrypoint.sh"]
+
 FROM python:3.9-slim
 
+# Install system dependencies including those needed for PyTorch
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    git \
+    curl \
+    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
 
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
+
+# Copy requirements first to leverage Docker cache
 COPY requirements_django.txt /usr/src/app/
 RUN pip install --no-cache-dir -r requirements_django.txt
 
+# Create directory for model caching
+RUN mkdir -p /usr/src/app/treevaq/model_cache
+ENV TRANSFORMERS_CACHE=/usr/src/app/treevaq/model_cache
+
+# Copy the rest of the application
 COPY . /usr/src/app/
 
+# Make entrypoint executable
 RUN chmod +x /usr/src/app/entrypoint.sh
+
+# Pre-download model to cache it in the image (optional, comment out if build fails)
+RUN python -c "from transformers import AutoTokenizer, AutoModelForCausalLM; AutoTokenizer.from_pretrained('distilbert/distilgpt2', cache_dir='/usr/src/app/treevaq/model_cache'); AutoModelForCausalLM.from_pretrained('distilbert/distilgpt2', cache_dir='/usr/src/app/treevaq/model_cache')"
 
 EXPOSE 8000
 

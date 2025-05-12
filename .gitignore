@@ -172,3 +172,10 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Model cache or large downloaded models
+model_cache/
+.cache/
+*.pt
+*.bin
+*.ckpt

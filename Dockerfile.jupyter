@@ -1,14 +1,41 @@
+# FROM python:3.9-slim
+
+# RUN apt-get update && apt-get install -y build-essential libpq-dev git curl netcat-openbsd && rm -rf /var/lib/apt/lists/*
+
+# WORKDIR /usr/src/app
+
+# COPY requirements_jupyter.txt .
+# RUN pip install --no-cache-dir -r requirements_jupyter.txt
+
+# COPY . .
+
+# WORKDIR /usr/src/app/treevaq
+
+# EXPOSE 8888
+
+# CMD ["python", "manage.py", "shell_plus", "--notebook", "--", "--allow-root", "--ip=0.0.0.0", "--NotebookApp.token="]
+
 FROM python:3.9-slim
 
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    git \
+    curl \
+    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
 
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
+
 COPY requirements_jupyter.txt .
 RUN pip install --no-cache-dir -r requirements_jupyter.txt
+
+# Create model cache directory
+RUN mkdir -p /usr/src/app/treevaq/model_cache
+ENV TRANSFORMERS_CACHE=/usr/src/app/treevaq/model_cache
 
 COPY . .
 
@@ -16,4 +43,4 @@ WORKDIR /usr/src/app/treevaq
 
 EXPOSE 8888
 
-CMD ["python", "manage.py", "shell_plus", "--notebook", "--", "--allow-root", "--ip=0.0.0.0", "--NotebookApp.token="]
+CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''"]

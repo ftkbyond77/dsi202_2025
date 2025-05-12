@@ -47,6 +47,7 @@ urlpatterns = [
     path('auth/', include('social_django.urls', namespace='social')),
     path('login/', LoginView.as_view(template_name='app1/login.html'), name='login'),
     path('logout/', LogoutView.as_view(template_name='app1/logout.html'), name='logout'),
+    path('api/', include('app1.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

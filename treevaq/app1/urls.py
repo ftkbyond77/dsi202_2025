@@ -65,6 +65,9 @@ urlpatterns = [
     path('api/community/comment/', views.add_comment, name='add_comment'),
     path('api/community/comment/delete/', views.delete_comment, name='delete_comment'),
     path('api/community/comments/<int:post_id>/', views.get_comments, name='get_comments'),
+    
+    # --- Transformer ----
+    path('api/chatbot/', views.chatbot_api, name='chatbot_api'),
 ]
 
 if settings.DEBUG:

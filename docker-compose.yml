@@ -1,3 +1,63 @@
+# version: '3.8'
+
+# services:
+#   db:
+#     image: postgres:14
+#     container_name: postgres
+#     env_file:
+#       - .env
+#     volumes:
+#       - db_data:/var/lib/postgresql/data
+#     environment:
+#       - POSTGRES_DB=django_db
+#       - POSTGRES_USER=django_user
+#       - POSTGRES_PASSWORD=django_pass
+#     ports:
+#       - "5432:5432"
+#     restart: unless-stopped
+
+#   web:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile.django
+#     image: treevaq_django:latest
+#     container_name: django
+#     env_file:
+#       - .env
+#     volumes:
+#       - .:/usr/src/app:rw
+#     ports:
+#       - "8000:8000"
+#     environment:
+#       - PYTHONUNBUFFERED=1
+#       - POSTGRES_DB=django_db
+#       - POSTGRES_USER=django_user
+#       - POSTGRES_PASSWORD=django_pass
+#       - POSTGRES_HOST=db
+#     depends_on:
+#       - db
+#     command: /bin/bash /usr/src/app/entrypoint.sh
+
+#   jupyter:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile.jupyter
+#     image: treevaq_jupyter:latest
+#     container_name: jupyter
+#     env_file:
+#       - .env
+#     volumes:
+#       - .:/usr/src/app:rw
+#     ports:
+#       - "8888:8888"
+#     environment:
+#       - PYTHONUNBUFFERED=1
+#     depends_on:
+#       - db
+
+# volumes:
+#   db_data:
+
 version: '3.8'
 
 services:
@@ -26,6 +86,7 @@ services:
       - .env
     volumes:
       - .:/usr/src/app:rw
+      - model_cache:/usr/src/app/treevaq/model_cache
     ports:
       - "8000:8000"
     environment:
@@ -34,6 +95,7 @@ services:
       - POSTGRES_USER=django_user
       - POSTGRES_PASSWORD=django_pass
       - POSTGRES_HOST=db
+      - TRANSFORMERS_CACHE=/usr/src/app/treevaq/model_cache
     depends_on:
       - db
     command: /bin/bash /usr/src/app/entrypoint.sh
@@ -48,12 +110,15 @@ services:
       - .env
     volumes:
       - .:/usr/src/app:rw
+      - model_cache:/usr/src/app/treevaq/model_cache
     ports:
       - "8888:8888"
     environment:
       - PYTHONUNBUFFERED=1
+      - TRANSFORMERS_CACHE=/usr/src/app/treevaq/model_cache
     depends_on:
       - db
 
 volumes:
   db_data:
+  model_cache:
