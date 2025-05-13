@@ -49,7 +49,9 @@ COPY . /usr/src/app/
 RUN chmod +x /usr/src/app/entrypoint.sh
 
 # Pre-download model to cache it in the image (optional, comment out if build fails)
-RUN python -c "from transformers import AutoTokenizer, AutoModelForCausalLM; AutoTokenizer.from_pretrained('distilbert/distilgpt2', cache_dir='/usr/src/app/treevaq/model_cache'); AutoModelForCausalLM.from_pretrained('distilbert/distilgpt2', cache_dir='/usr/src/app/treevaq/model_cache')"
+RUN python -c "from transformers import AutoTokenizer, AutoModelForCausalLM; \
+    AutoTokenizer.from_pretrained('openai-community/gpt2', cache_dir='/usr/src/app/treevaq/model_cache'); \
+    AutoModelForCausalLM.from_pretrained('openai-community/gpt2', cache_dir='/usr/src/app/treevaq/model_cache')"
 
 EXPOSE 8000
 

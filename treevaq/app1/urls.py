@@ -37,6 +37,9 @@ urlpatterns = [
     # --- Community ---
     path('community/', views.community, name='community'),
     
+    # --- About us ---
+    path('about/', views.about, name='about'),
+    
     # --- User / Auth / Dashboard ---
     path('signup/', views.SignupView.as_view(), name='signup'),
     path('account/', views.account_view, name='account'),

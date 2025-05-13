@@ -823,6 +823,14 @@ def wishlist(request):
     }
     return render(request, 'app1/wishlist.html', context)
 
+def about(request):
+    context = {
+        'page_title': 'About Us - Treevaq',
+        'site_name': 'Treevaq',
+    }
+    return render(request, 'app1/about.html', context)
+
+
 class ProductListCreateAPIView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer

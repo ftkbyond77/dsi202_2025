@@ -6,249 +6,335 @@
 {% block head_placeholder %}
     <meta name="description" content="Admin dashboard for Treevaq, showing key metrics like total products, orders, and revenue over time.">
     <style>
-        .hover-lift {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        /* Full page sections */
+        .full-page-section {
+            min-height: 100vh;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
         }
-        .hover-lift:hover {
+        
+        /* Hero section styles */
+        .hero-gradient {
+            background: linear-gradient(135deg, #48bb78 0%, #38b2ac 100%);
+        }
+        
+        /* Scrolling animation */
+        .scrolling-images-container {
+            animation: scrollBackground 100s linear infinite;
+            height: 100%;
+            width: 1000%;
+            display: flex;
+        }
+        
+        @keyframes scrollBackground {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-90%); } /* Move nine images to the left */
+        }
+        
+        .scrolling-image {
+            width: 10%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.8);
+            transition: filter 0.5s ease;
+        }
+        
+        /* Section styling */
+        .section-content {
+            position: relative;
+            z-index: 10;
+            padding: 2rem;
+        }
+        
+        /* Card hover effects */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         }
-        /* Adjust for Dark Mode */
-        body.dark-mode .hover-lift:hover {
-            box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.1), 0 4px 6px -2px rgba(255, 255, 255, 0.05);
+        
+        /* Dark mode adjustments */
+        .dark-mode .scrolling-image {
+            filter: brightness(0.6);
+        }
+        
+        /* Impact counter styling */
+        .counter-item {
+            transition: all 0.3s ease;
+        }
+        .counter-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
         }
     </style>
 {% endblock %}
 
+
 {% block content %}
-<!-- Hero Section -->
-<section class="relative bg-gradient-to-r from-green-500 to-teal-500 text-white py-20">
-    <div class="container mx-auto px-4 text-center">
-        <h1 class="text-5xl md:text-6xl font-bold mb-4 animate-fade-in">Green Living, Made Simple</h1>
-        <p class="text-lg md:text-xl mb-8 animate-fade-in animate-fade-in-delayed">Discover sustainable products that help you save the planet, one purchase at a time.</p>
-        <a href="{% url 'app1:product_list' %}" class="inline-block bg-white text-green-600 font-semibold text-lg py-3 px-8 rounded-full hover:bg-green-100 transition transform hover:scale-105 animate-bounce-slow">
-            Shop Now
+<!-- Hero Section (Full Screen) -->
+<section class="full-page-section flex items-center justify-center hero-gradient text-white">
+    <!-- Horizontal Scrolling Background -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="scrolling-images-container">
+            <!-- 10 Green-themed images -->
+            <div class="scrolling-image" style="background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=80')"></div>
+            <div class="scrolling-image" style="background-image: url('https://images.unsplash.com/photo-1476231682828-37e571bc172f?auto=format&fit=crop&w=1920&q=80')"></div>
+            <div class="scrolling-image" style="background-image: url('https://images.unsplash.com/photo-1425913397330-cf8af2ff40a1?auto=format&fit=crop&w=1920&q=80')"></div>
+            <div class="scrolling-image" style="background-image: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1920&q=80')"></div>
+            <div class="scrolling-image" style="background-image: url('https://images.unsplash.com/photo-1468276311594-df7cb65d8df6?auto=format&fit=crop&w=1920&q=80')"></div>
+            <div class="scrolling-image" style="background-image: url('https://images.unsplash.com/photo-1470114716159-e389f8712fda?auto=format&fit=crop&w=1920&q=80')"></div>
+            <div class="scrolling-image" style="background-image: url('https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=1920&q=80')"></div>
+            <div class="scrolling-image" style="background-image: url('https://images.unsplash.com/photo-1429087969512-1e85aab2683d?auto=format&fit=crop&w=1920&q=80')"></div>
+            <div class="scrolling-image" style="background-image: url('https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=1920&q=80')"></div>
+            <div class="scrolling-image" style="background-image: url('https://images.unsplash.com/photo-1516214104703-d870798883c5?auto=format&fit=crop&w=1920&q=80')"></div>
+        </div>
+        <div class="absolute inset-0 bg-black opacity-30"></div>
+    </div>
+    
+    <div class="section-content">
+        <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <span class="text-white">Sustainable Living,</span><br>
+            <span class="text-white opacity-90">Simplified</span>
+        </h1>
+        <p class="text-xl md:text-2xl mb-10 max-w-2xl mx-auto opacity-90">
+            Discover eco-friendly products that make a difference. Shop consciously, live sustainably.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <a href="{% url 'app1:product_list' %}" class="btn-primary text-white font-semibold py-4 px-8 rounded-full inline-block">
+                Shop Now
+            </a>
+            <a href="#features" class="bg-white text-green-600 font-semibold py-4 px-8 rounded-full inline-block hover:bg-gray-50 transition">
+                Learn More
+            </a>
+        </div>
+    </div>
+    
+    <div class="absolute bottom-10 left-0 right-0 text-center">
+        <a href="#features" class="inline-block animate-bounce">
+            <svg class="w-8 h-8 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+            </svg>
         </a>
     </div>
 </section>
 
-<!-- Why Shop With Us Section -->
-<section class="py-16 bg-gray-50">
-    <div class="container mx-auto px-4 text-center">
-        <h2 class="text-3xl font-semibold text-gray-800 mb-12 animate-fade-in">Why Shop With Treevaq?</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition animate-fade-in">
-                <svg class="w-12 h-12 mx-auto mb-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <h3 class="text-xl font-semibold text-gray-800 mb-2">Eco-Friendly Products</h3>
-                <p class="text-gray-600">Every item is sustainably sourced to reduce your carbon footprint.</p>
+<!-- Features Section -->
+<section id="features" class="py-20 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Why Choose Treevaq</h2>
+            <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                We're redefining sustainable shopping with transparency, quality, and impact.
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div class="text-center card-hover">
+                <div class="feature-icon">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Verified Sustainability</h3>
+                <p class="text-gray-600 dark:text-gray-300">
+                    Every product meets strict environmental standards with full supply chain transparency.
+                </p>
             </div>
-            <div class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition animate-fade-in animate-fade-in-delayed">
-                <svg class="w-12 h-12 mx-auto mb-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                </svg>
-                <h3 class="text-xl font-semibold text-gray-800 mb-2">Transparent Impact</h3>
-                <p class="text-gray-600">See the carbon savings for each product you buy.</p>
+            
+            <div class="text-center card-hover">
+                <div class="feature-icon">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Positive Impact</h3>
+                <p class="text-gray-600 dark:text-gray-300">
+                    Each purchase contributes to reforestation and carbon offset projects.
+                </p>
             </div>
-            <div class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition animate-fade-in animate-fade-in-delayed">
-                <svg class="w-12 h-12 mx-auto mb-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <h3 class="text-xl font-semibold text-gray-800 mb-2">Affordable Prices</h3>
-                <p class="text-gray-600">Sustainable living doesn't have to break the bank.</p>
+            
+            <div class="text-center card-hover">
+                <div class="feature-icon">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Carbon Neutral</h3>
+                <p class="text-gray-600 dark:text-gray-300">
+                    All shipping and operations are 100% carbon neutral.
+                </p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Featured Products Section -->
-<section class="py-16 bg-white">
-    <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-semibold text-gray-800 mb-12 text-center animate-fade-in">Featured Sustainable Products</h2>
+<!-- Divider -->
+<div class="section-divider"></div>
+
+<!-- Featured Products -->
+<section class="py-20 bg-gray-50 dark:bg-gray-800">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Featured Products</h2>
+            <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                Curated selection of our most sustainable and popular items
+            </p>
+        </div>
+        
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {% for product in featured_products %}
-            <div class="bg-white rounded-lg overflow-hidden shadow-md hover-lift">
-                <a href="{% url 'app1:product_detail' product.id %}">
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-48 object-cover">
-                    <div class="p-4">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ product.name }}</h3>
-                        <p class="text-green-600 font-bold mb-2">${{ product.price }}</p>
-                        <div class="flex items-center mb-2">
-                            <span class="text-yellow-400">★★★★☆</span>
-                            <span class="text-gray-500 text-sm ml-1">(24)</span>
-                        </div>
-                        <p class="text-gray-600 text-sm">{{ product.short_description }}</p>
+            <a href="{% url 'app1:product_detail' product.id %}" class="product-card bg-white dark:bg-gray-700">
+                <div class="relative overflow-hidden">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-60 object-cover transition duration-500 hover:scale-105">
+                    <div class="absolute top-4 right-4 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                        Sustainable
                     </div>
-                </a>
-            </div>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-semibold text-lg mb-1 text-gray-800 dark:text-white">{{ product.name }}</h3>
+                    <p class="text-green-600 font-bold mb-3">${{ product.price }}</p>
+                    <div class="flex items-center text-sm text-gray-500 dark:text-gray-300">
+                        <div class="flex text-yellow-400 mr-2">
+                            ★★★★☆
+                        </div>
+                        (24 reviews)
+                    </div>
+                </div>
+            </a>
             {% endfor %}
         </div>
-        <div class="text-center mt-8">
-            <a href="{% url 'app1:product_list' %}" class="inline-block bg-green-600 text-white font-semibold py-2 px-6 rounded-full hover:bg-green-700 transition">
+        
+        <div class="text-center mt-12">
+            <a href="{% url 'app1:product_list' %}" class="inline-block bg-white dark:bg-gray-700 text-gray-800 dark:text-white font-semibold py-3 px-8 rounded-full border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition">
                 View All Products
             </a>
         </div>
     </div>
 </section>
 
-<!-- Impact Counter Section -->
-<section class="py-16 bg-green-600 text-white">
-    <div class="container mx-auto px-4 text-center">
-        <h2 class="text-3xl font-semibold mb-12 animate-fade-in">Our Collective Impact</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div class="animate-fade-in">
-                <div class="text-4xl font-bold mb-2" id="trees-saved">10,000+</div>
-                <p class="text-green-100">Trees Saved</p>
+<!-- Impact Section with Animated Counters -->
+<section class="py-20 bg-green-600 text-white relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10" style="background-image: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1920&q=80'); background-size: cover;"></div>
+    
+    <div class="container mx-auto px-6 relative z-10">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Our Collective Impact</h2>
+            <p class="text-xl opacity-90 max-w-2xl mx-auto">
+                Together, we're making a measurable difference for the planet
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div class="p-6 counter-item">
+                <div class="counter-number animate-counter" data-target="10000">0</div>
+                <p class="opacity-90">Trees Planted</p>
             </div>
-            <div class="animate-fade-in animate-fade-in-delayed">
-                <div class="text-4xl font-bold mb-2" id="co2-reduced">500+</div>
-                <p class="text-green-100">Tons of CO₂ Reduced</p>
+            <div class="p-6 counter-item">
+                <div class="counter-number animate-counter" data-target="500">0</div>
+                <p class="opacity-90">Tons of CO₂ Reduced</p>
             </div>
-            <div class="animate-fade-in animate-fade-in-delayed">
-                <div class="text-4xl font-bold mb-2" id="products-sold">25,000+</div>
-                <p class="text-green-100">Eco Products Sold</p>
+            <div class="p-6 counter-item">
+                <div class="counter-number animate-counter" data-target="25000">0</div>
+                <p class="opacity-90">Eco Products Sold</p>
             </div>
-            <div class="animate-fade-in animate-fade-in-delayed">
-                <div class="text-4xl font-bold mb-2" id="happy-customers">15,000+</div>
-                <p class="text-green-100">Happy Customers</p>
+            <div class="p-6 counter-item">
+                <div class="counter-number animate-counter" data-target="15000">0</div>
+                <p class="opacity-90">Happy Customers</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Testimonials Section -->
-<section class="py-16 bg-gray-50">
-    <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-semibold text-gray-800 mb-12 text-center animate-fade-in">What Our Customers Say</h2>
+<!-- Testimonials -->
+<section class="py-20 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">What People Are Saying</h2>
+            <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                Don't just take our word for it
+            </p>
+        </div>
+        
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="bg-white p-6 rounded-lg shadow-md hover-lift">
-                <div class="flex items-center mb-4">
+            <div class="testimonial-card p-8 rounded-xl">
+                <div class="flex items-center mb-6">
                     <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Sarah J." class="w-12 h-12 rounded-full mr-4">
                     <div>
-                        <h4 class="font-semibold text-gray-800">Sarah J.</h4>
-                        <div class="flex text-yellow-400">
+                        <h4 class="font-semibold">Sarah J.</h4>
+                        <div class="flex text-yellow-400 text-sm">
                             ★★★★★
                         </div>
                     </div>
                 </div>
-                <p class="text-gray-600 italic">"I've completely switched to Treevaq for all my household needs. The quality is amazing and I love knowing I'm making a difference!"</p>
+                <p class="text-gray-600 dark:text-gray-300 italic">
+                    "I've completely switched to Treevaq for all my household needs. The quality is amazing and I love knowing I'm making a difference!"
+                </p>
             </div>
-            <div class="bg-white p-6 rounded-lg shadow-md hover-lift">
-                <div class="flex items-center mb-4">
+            
+            <div class="testimonial-card p-8 rounded-xl">
+                <div class="flex items-center mb-6">
                     <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Michael T." class="w-12 h-12 rounded-full mr-4">
                     <div>
-                        <h4 class="font-semibold text-gray-800">Michael T.</h4>
-                        <div class="flex text-yellow-400">
+                        <h4 class="font-semibold">Michael T.</h4>
+                        <div class="flex text-yellow-400 text-sm">
                             ★★★★★
                         </div>
                     </div>
                 </div>
-                <p class="text-gray-600 italic">"The bamboo toothbrushes are game-changers. Better than plastic ones and they come in compostable packaging. 10/10!"</p>
+                <p class="text-gray-600 dark:text-gray-300 italic">
+                    "The bamboo toothbrushes are game-changers. Better than plastic ones and they come in compostable packaging. 10/10!"
+                </p>
             </div>
-            <div class="bg-white p-6 rounded-lg shadow-md hover-lift">
-                <div class="flex items-center mb-4">
+            
+            <div class="testimonial-card p-8 rounded-xl">
+                <div class="flex items-center mb-6">
                     <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Priya K." class="w-12 h-12 rounded-full mr-4">
                     <div>
-                        <h4 class="font-semibold text-gray-800">Priya K.</h4>
-                        <div class="flex text-yellow-400">
+                        <h4 class="font-semibold">Priya K.</h4>
+                        <div class="flex text-yellow-400 text-sm">
                             ★★★★☆
                         </div>
                     </div>
                 </div>
-                <p class="text-gray-600 italic">"Love the concept and most products. Would like to see more variety in the cleaning supplies section. Keep up the great work!"</p>
+                <p class="text-gray-600 dark:text-gray-300 italic">
+                    "Love the concept and most products. Would like to see more variety in the cleaning supplies section. Keep up the great work!"
+                </p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Newsletter Section -->
-<section class="py-16 bg-green-50">
-    <div class="container mx-auto px-4 text-center max-w-3xl">
-        <h2 class="text-3xl font-semibold text-gray-800 mb-4 animate-fade-in">Join Our Green Journey</h2>
-        <p class="text-gray-600 mb-8">Get eco-friendly tips, exclusive offers, and updates on new sustainable products.</p>
-        <form class="flex flex-col sm:flex-row gap-4 justify-center">
-            <input type="email" placeholder="Your email address" class="px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 flex-grow max-w-md">
-            <button type="submit" class="bg-green-600 text-white font-semibold px-6 py-3 rounded-full hover:bg-green-700 transition whitespace-nowrap">
-                Subscribe
-            </button>
-        </form>
-        <p class="text-gray-500 text-sm mt-4">We respect your privacy. Unsubscribe at any time.</p>
-    </div>
-</section>
-
-<!-- Blog Highlights Section -->
-<section class="py-16 bg-white">
-    <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-semibold text-gray-800 mb-12 text-center animate-fade-in">From Our Blog</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Blog Post 1 -->
-            <div class="bg-white rounded-lg overflow-hidden shadow-md hover-lift">
-                <div>
-                    <img src="https://images.unsplash.com/photo-1606787366850-de6330128bfc?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Zero Waste Kitchen" class="w-full h-48 object-cover">
-                    <div class="p-4">
-                        <span class="text-green-600 text-sm font-medium">Lifestyle</span>
-                        <h3 class="text-xl font-semibold text-gray-800 my-2">Zero Waste Kitchen: 10 Essential Swaps</h3>
-                        <p class="text-gray-600 text-sm">Transform your kitchen with these sustainable alternatives.</p>
-                        <div class="flex items-center mt-4 text-sm text-gray-500">
-                            <span>June 2, 2023</span>
-                            <span class="mx-2">•</span>
-                            <span>8 min read</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Blog Post 2 -->
-            <div class="bg-white rounded-lg overflow-hidden shadow-md hover-lift">
-                <div>
-                    <img src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Sustainable Fashion" class="w-full h-48 object-cover">
-                    <div class="p-4">
-                        <span class="text-green-600 text-sm font-medium">Fashion</span>
-                        <h3 class="text-xl font-semibold text-gray-800 my-2">The Truth About Sustainable Fashion</h3>
-                        <p class="text-gray-600 text-sm">How to build an eco-conscious wardrobe without greenwashing.</p>
-                        <div class="flex items-center mt-4 text-sm text-gray-500">
-                            <span>May 22, 2023</span>
-                            <span class="mx-2">•</span>
-                            <span>6 min read</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Blog Post 3 -->
-            <div class="bg-white rounded-lg overflow-hidden shadow-md hover-lift">
-                <div>
-                    <img src="https://images.unsplash.com/photo-1589927986089-35812388d1f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Composting Guide" class="w-full h-48 object-cover">
-                    <div class="p-4">
-                        <span class="text-green-600 text-sm font-medium">How-To</span>
-                        <h3 class="text-xl font-semibold text-gray-800 my-2">Composting 101: Turn Waste into Garden Gold</h3>
-                        <p class="text-gray-600 text-sm">A beginner's guide to reducing food waste at home.</p>
-                        <div class="flex items-center mt-4 text-sm text-gray-500">
-                            <span>April 15, 2023</span>
-                            <span class="mx-2">•</span>
-                            <span>10 min read</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="text-center mt-8">
-            <a href="{% url 'app1:blog' %}" class="inline-block bg-green-600 text-white font-semibold py-2 px-6 rounded-full hover:bg-green-700 transition">
-                Read More Articles
+<!-- CTA Section -->
+<section class="py-20 bg-gray-50 dark:bg-gray-800">
+    <div class="container mx-auto px-6 text-center">
+        <h2 class="text-3xl md:text-4xl font-bold mb-6 text-gray-800 dark:text-white">Ready to Make a Difference?</h2>
+        <p class="text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto">
+            Join thousands of eco-conscious shoppers building a better future
+        </p>
+        <div class="flex justify-center">
+            <a href="{% url 'app1:product_list' %}" 
+               class="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-full text-white bg-green-600 hover:bg-green-700 transition duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                Shop Sustainable Products
+                <svg class="ml-2 -mr-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                </svg>
             </a>
         </div>
     </div>
 </section>
 
 <!-- Footer -->
-<footer class="bg-gray-100 text-gray-700 border-t border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
-    <div class="container mx-auto px-4 py-12">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <!-- Column 1: About -->
+<footer class="bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border-t border-gray-100 dark:border-gray-800">
+    <div class="container mx-auto px-6 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
             <div>
-                <h3 class="text-lg font-semibold mb-4 text-green-600 dark:text-green-400">About Treevaq</h3>
-                <p class="mb-4">We’re on a mission to make sustainable living accessible to everyone through eco-friendly products and education.</p>
+                <h3 class="text-lg font-semibold mb-4 text-green-600 dark:text-green-400">Treevaq</h3>
+                <p class="mb-4">Making sustainable living accessible to everyone through eco-friendly products and education.</p>
                 <div class="flex space-x-4">
                     <a href="#" class="text-gray-500 hover:text-green-600 dark:hover:text-green-400">
                         <i class="fab fa-facebook-f"></i>
@@ -265,55 +351,67 @@
                 </div>
             </div>
 
-            <!-- Column 2: Quick Links -->
             <div>
-                <h3 class="text-lg font-semibold mb-4 text-green-600 dark:text-green-400">Quick Links</h3>
+                <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Shop</h3>
                 <ul class="space-y-2">
-                    <li><a href="{% url 'app1:home' %}" class="hover:text-green-600 dark:hover:text-green-400 transition">Home</a></li>
-                    <li><a href="{% url 'app1:product_list' %}" class="hover:text-green-600 dark:hover:text-green-400 transition">Shop</a></li>
-                    <li><a href="{% url 'app1:blog' %}" class="hover:text-green-600 dark:hover:text-green-400 transition">Blog</a></li>
-                    <li><a href="{% url 'app1:community' %}" class="hover:text-green-600 dark:hover:text-green-400 transition">Community</a></li>
+                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">All Products</a></li>
+                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">New Arrivals</a></li>
+                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Best Sellers</a></li>
+                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Gift Cards</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">About</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Our Story</a></li>
+                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Sustainability</a></li>
+                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Blog</a></li>
+                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Careers</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Help</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">FAQ</a></li>
+                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Shipping</a></li>
+                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Returns</a></li>
                     <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Contact Us</a></li>
                 </ul>
             </div>
-
-            <!-- Column 3: Customer Service -->
-            <div>
-                <h3 class="text-lg font-semibold mb-4 text-green-600 dark:text-green-400">Customer Service</h3>
-                <ul class="space-y-2">
-                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Shipping Policy</a></li>
-                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Returns & Refunds</a></li>
-                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">FAQ</a></li>
-                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Privacy Policy</a></li>
-                    <li><a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Terms of Service</a></li>
-                </ul>
-            </div>
-
-            <!-- Column 4: Newsletter -->
-            <div>
-                <h3 class="text-lg font-semibold mb-4 text-green-600 dark:text-green-400">Stay Updated</h3>
-                <p class="mb-4">Subscribe for eco-tips and exclusive offers:</p>
-                <form class="flex flex-col space-y-3">
-                    <input type="email" placeholder="Your email" class="px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600">
-                    <button type="submit" class="bg-green-600 text-white py-2 px-4 rounded-full hover:bg-green-700 transition dark:bg-green-700 dark:hover:bg-green-600">
-                        Subscribe
-                    </button>
-                </form>
-            </div>
         </div>
 
-        <!-- Copyright & Bottom Bar -->
-        <div class="border-t border-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center dark:border-gray-700">
+        <div class="border-t border-gray-100 dark:border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <div class="mb-4 md:mb-0">
                 <p>&copy; 2025 Treevaq. All rights reserved.</p>
             </div>
             <div class="flex space-x-6">
                 <a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Privacy Policy</a>
                 <a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Terms of Service</a>
-                <a href="#" class="hover:text-green-600 dark:hover:text-green-400 transition">Sitemap</a>
             </div>
         </div>
     </div>
 </footer>
 
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const counters = document.querySelectorAll('.animate-counter');
+        counters.forEach(counter => {
+            const updateCounter = () => {
+                const target = +counter.getAttribute('data-target');
+                const count = +counter.innerText;
+                const increment = target / 200;
+                if (count < target) {
+                    counter.innerText = Math.ceil(count + increment);
+                    setTimeout(updateCounter, 10);
+                } else {
+                    counter.innerText = target.toLocaleString() + '+';
+                }
+            };
+            updateCounter();
+        });
+    });
+</script>
 {% endblock %}
