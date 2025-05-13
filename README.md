@@ -107,7 +107,7 @@ Treevaq ได้รับการออกแบบให้รองรับ
 
 สิ่งที่ผู้ใช้งานต้องเตรียมก่อน git clone สำหรับในเบื้องต้นมีดังต่อไปนี้ (หากติดตั้งไว้แล้ว สามารถข้ามผ่านได้)
 
-1. `C++ build tools` 
+1. **`C++ build tools`** 
    - for Windows OS โดยสามารถติดตั้งแต่ได้ผ่าน
       - https://visualstudio.microsoft.com/visual-cpp-build-tools/ และ คลิก "Download Build Tools"
       - เมื่อเข้าสู่หน้า Visual Studio Installer คลิกเลือก "Desktop development with C++" และ "C++ Tools for Linux Development (optional)"
@@ -129,7 +129,7 @@ Treevaq ได้รับการออกแบบให้รองรับ
       ```bash
       sudo pacman -S base-devel python
       ```
-2. `.env` ไฟล์
+2. **`.env`** ไฟล์
    - โดยคุณจำเป็นต้องเตรียม keys สำหรับสร้างไฟล์นี้และเก็บตัวแปรดังต่อไปนี้
       - SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=  (Client ID)
       - SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET= (Client secret)
@@ -137,9 +137,9 @@ Treevaq ได้รับการออกแบบให้รองรับ
    
    - keys ของผู้พัฒนา (สามารถนำไปใช้ได้ (หากดูบน Github จะไม่สามารถเห็นคีย์นี้ได้))
 
-      -`SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=xxxxxxxxxxxxxxxxxxxxxx`
+      -**`SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=xxxxxxxxxxxxxxxxxxx`**
 
-      -`SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=xxxxxxxxxxxxxxxxxxxxxx`
+      -**`SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=xxxxxxxxxxxxxxxxxxx`**
 
 เหตุผล: 
    - `C++ build Tools`: เนื่องจากระบบ Promptpay QR code มีการใช้ package "crc16" ซึ่งต้องการ C++ compiler (Microsoft Visual C++ Build Tools) เพื่อ build wheel จาก source code
@@ -157,10 +157,11 @@ Treevaq ได้รับการออกแบบให้รองรับ
 2. **Create .env files and add keys**:
 
    ```bash
-   echo "SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=xxxxxxxxxxxxxxxxxxxxxx" > .env
-   echo "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=xxxxxxxxxxxxxxxxxxxxxx" >> .env
+   echo "SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=xxxxxxxxxxxxxxxxxxx" > .env
+
+   echo "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=xxxxxxxxxxxxxxxxxxx" >> .env
    ```
-   ⚠️*warning:* `keys ของผู้พัฒนา (สามารถนำไปใช้ได้ (หากดูบน Github จะไม่สามารถเห็นคีย์นี้ได้))` วางไว้ในตำแหน่งเดียวกับ Dockerfile เพื่อไม่ให้เกิดปัญหา
+   ⚠️*warning:* keys ของผู้พัฒนา (สามารถนำไปใช้ได้ (หากดูบน Github จะไม่สามารถเห็นคีย์นี้ได้)) วางไว้ในตำแหน่งเดียวกับ Dockerfile เพื่อไม่ให้เกิดปัญหา
 
 3. **Build the Application**:
 
@@ -202,3 +203,9 @@ Treevaq ได้รับการออกแบบให้รองรับ
 - ระบบ payment ยังคงเป็นแบบ manual ที่ต้องปรับสถานะที่หลังบ้าน เนื่องจากข้อจำกัดด้านการเงินและทรัพยากร
 
 This README provides a comprehensive guide to get started with Treevaq, supporting its sustainable e-commerce vision.
+
+![Alt text](img1.png)
+
+
+**ผู้เขียน:** นายชยุต มีคุณ 6624650195, วิทยาลัยสหวิทยาการ สาขาวิทยาศาสตร์และนวัตกรรมข้อมูล มหาวิทยาลัยธรรมศาสตร์
+© 2025
