@@ -7,9 +7,9 @@
     <title>{% block title %}Treevaq{% endblock %}</title>
     <!-- Tailwind CSS via CDN -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <!-- Include Chart.js -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-    <!-- Font Awesome for social icons -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Custom Styles -->
     <style>
@@ -43,19 +43,19 @@
             color: #a0aec0;
         }
         body.dark-mode .text-green-600 {
-            color: #68d391; /* Lighter green in Dark Mode */
+            color: #68d391;
         }
         body.dark-mode .text-green-800 {
-            color: #38a169; /* Darker green in Dark Mode */
+            color: #38a169;
         }
         body.dark-mode .bg-green-100 {
-            background-color: #2f855a; /* Dark green in Dark Mode */
+            background-color: #2f855a;
         }
         body.dark-mode .bg-green-600 {
-            background-color: #276749; /* Darker green background */
+            background-color: #276749;
         }
         body.dark-mode .hover\:bg-green-700:hover {
-            background-color: #22543d; /* Even darker green on hover */
+            background-color: #22543d;
         }
         body.dark-mode .text-red-600 {
             color: #fc8181;
@@ -67,24 +67,16 @@
             background-color: #822727;
         }
         body.dark-mode img {
-            filter: brightness(0.9); /* Slightly adjust image brightness in dark mode */
+            filter: brightness(0.9);
         }
-        /* Navbar Shadow in Dark Mode */
         body.dark-mode .shadow-md {
             box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06);
         }
-        /* Dark Mode Styles for Buttons */
         body.dark-mode .bg-gray-200 {
-            background-color: #4a5568; /* Darker gray for button background */
-        }
-        body.dark-mode .text-gray-800 {
-            color: #e2e8f0; /* Light text for readability */
+            background-color: #4a5568;
         }
         body.dark-mode .hover\:bg-gray-300:hover {
-            background-color: #718096; /* Lighter gray for hover effect */
-        }
-        body.dark-mode .bg-white {
-            background-color: #2d3748; /* Adjust dropdown background in Dark Mode */
+            background-color: #718096;
         }
         /* Submenu Styles */
         .dropdown-submenu {
@@ -108,10 +100,98 @@
         body.dark-mode .dropdown-menu a:hover {
             background-color: #4a5568;
         }
+        /* Snowfall Toggle Styles */
+        .snow-toggle {
+            width: 48px;
+            height: 24px;
+            position: relative;
+            cursor: pointer;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+        body.dark-mode .snow-toggle {
+            background-color: #4a5568;
+        }
+        .snow-toggle input {
+            display: none;
+        }
+        .snow-toggle input:checked + .snow-toggle-slider {
+            transform: translateX(24px);
+        }
+        .snow-toggle input:checked ~ .snow-toggle-background {
+            background-color: #38a169;
+        }
+        body.dark-mode .snow-toggle input:checked ~ .snow-toggle-background {
+            background-color: #68d391;
+        }
+        .snow-toggle-slider {
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            z-index: 2;
+        }
+        .snow-toggle-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 9999px;
+            background-color: #e2e8f0;
+            transition: background-color 0.3s;
+            z-index: 1;
+        }
+        body.dark-mode .snow-toggle-background {
+            background-color: #4a5568;
+        }
+        /* Snowfall Animation */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            left: 0;
+            color: #fff;
+            font-size: 1em;
+            font-family: Arial, sans-serif;
+            text-shadow: 0 0 5px #000;
+            pointer-events: none;
+            z-index: 10000;
+            display: block;
+            opacity: 1;
+        }
+        /* Custom Toast Styles */
+        #custom-toast {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            background-color: #38a169;
+            color: #fff;
+            padding: 0.75rem 1.125rem;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            font-size: 0.75rem;
+            box-shadow: 0 3px 4.5px rgba(0, 0, 0, 0.2);
+            z-index: 11000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            max-width: 225px;
+            display: none;
+        }
+        #custom-toast.show {
+            display: block;
+            opacity: 1;
+        }
+        body.dark-mode #custom-toast {
+            background-color: #68d391;
+        }
     </style>
-    <!-- Include Alpine.js -->
+    <!-- Alpine.js -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <!-- Placeholder for page-specific head content -->
     {% block head_placeholder %}{% endblock %}
 </head>
 <body>
@@ -127,12 +207,10 @@
                 <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:about' %}">About</a>
                 <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:dashboard' %}">Dashboard</a>
                 <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:seller' %}">Seller</a>
-                <!-- Wishlist Button (left of Cart) -->
                 <a class="text-gray-700 hover:text-green-600 relative" href="#" id="view-wishlist">
                     Wishlist
                     <span id="wishlist-count" class="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-green-500 rounded-full -mt-2 -mr-2 hidden"></span>
                 </a>
-                <!-- Cart Button -->
                 <a class="text-gray-700 hover:text-green-600 relative" href="{% url 'app1:view_cart' %}" id="wishlist-to-cart">
                     Cart
                     {% if cart_total > 0 %}
@@ -141,7 +219,6 @@
                         </span>
                     {% endif %}
                 </a>
-                <!-- Options Toggle using Alpine.js -->
                 <div x-data="{ isOpen: false }" class="relative">
                     <button @click="isOpen = !isOpen" @click.outside="isOpen = false" class="px-2 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 focus:outline-none transition-colors duration-200">
                         Options
@@ -176,15 +253,18 @@
                         {% endif %}
                     </div>
                 </div>
-                <!-- Dark Mode Toggle Button -->
                 <button id="dark-mode-toggle" class="px-2 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors duration-200">
                     Dark Mode
                 </button>
+                <label class="snow-toggle" title="Toggle Snowfall">
+                    <input type="checkbox" id="snow-toggle">
+                    <span class="snow-toggle-slider"></span>
+                    <span class="snow-toggle-background"></span>
+                </label>
             </div>
         </div>
     </nav>
 
-    <!-- Messages -->
     <div class="container mx-auto px-4 pt-16">
         {% if messages %}
             <div class="mb-4">
@@ -195,12 +275,15 @@
                 {% endfor %}
             </div>
         {% endif %}
-        <!-- Main Content -->
         {% block content %}
         {% endblock %}
     </div>
 
-    <!-- Chatbot Component -->
+    <div id="snowfall-container"></div>
+
+    <!-- Custom Toast -->
+    <div id="custom-toast">Hey, feeling lost? I’m here to help!</div>
+
     <div class="chatbot-container">
         <div id="chat-window" class="chat-window">
             <div class="chat-header">
@@ -211,7 +294,6 @@
                 </div>
             </div>
             <div id="chat-messages" class="chat-messages">
-                <!-- Messages will be added here dynamically -->
                 <div id="typing-indicator" class="typing-indicator">
                     <span></span>
                     <span></span>
@@ -229,12 +311,114 @@
             <i class="fas fa-robot"></i>
         </div>
     </div>
-        
-    <link rel="stylesheet" href="{% static 'app1/chatbot.css' %}">
 
-    <!-- JavaScript -->
+    <link rel="stylesheet" href="{% static 'app1/chatbot.css' %}">
     <script src="{% static 'app1/chatbot.js' %}"></script>
     <script src="{% static 'app1/dark-mode.js' %}"></script>
     <script src="{% static 'app1/wishlist.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Snowfall and Toast script loaded');
+
+            // Snowfall animation keyframes
+            const styleSheet = document.createElement('style');
+            styleSheet.innerHTML = `
+                @keyframes fall {
+                    0% { top: -10px; transform: translateX(0); }
+                    100% { top: ${window.innerHeight}px; transform: translateX(${Math.random() * 100 - 50}px); }
+                }
+            `;
+            document.head.appendChild(styleSheet);
+
+            // Snowfall toggle functionality
+            const snowToggle = document.getElementById('snow-toggle');
+            const snowfallContainer = document.getElementById('snowfall-container');
+            let snowInterval = null;
+
+            if (!snowfallContainer) {
+                console.error('snowfall-container not found');
+                return;
+            }
+
+            function createSnowflake() {
+                try {
+                    const snowflake = document.createElement('div');
+                    snowflake.className = 'snowflake';
+                    snowflake.textContent = '❄';
+                    snowflake.style.left = `${Math.random() * window.innerWidth}px`;
+                    snowflake.style.animation = `fall ${Math.random() * 5 + 5}s linear`;
+                    snowflake.style.opacity = Math.random() * 0.5 + 0.5;
+                    snowfallContainer.appendChild(snowflake);
+                    console.log('Snowflake created at left:', snowflake.style.left);
+
+                    snowflake.addEventListener('animationend', () => {
+                        snowflake.remove();
+                        console.log('Snowflake removed');
+                    });
+                } catch (error) {
+                    console.error('Error creating snowflake:', error);
+                }
+            }
+
+            function startSnowfall() {
+                if (snowInterval) clearInterval(snowInterval);
+                snowInterval = setInterval(createSnowflake, 200);
+                console.log('Snowfall started');
+            }
+
+            function stopSnowfall() {
+                if (snowInterval) {
+                    clearInterval(snowInterval);
+                    snowInterval = null;
+                }
+                snowfallContainer.innerHTML = '';
+                console.log('Snowfall stopped');
+            }
+
+            if (snowToggle) {
+                snowToggle.addEventListener('change', function() {
+                    if (this.checked) {
+                        startSnowfall();
+                    } else {
+                        stopSnowfall();
+                    }
+                });
+                console.log('Snow toggle initialized');
+            } else {
+                console.error('Snow toggle not found');
+            }
+
+            // Custom Toast functionality
+            try {
+                console.log('Initializing custom toast');
+                const toast = document.getElementById('custom-toast');
+                if (!toast) {
+                    console.error('Custom toast element not found');
+                    return;
+                }
+
+                // Show toast on page load
+                function showToast() {
+                    console.log('Showing toast');
+                    toast.classList.add('show');
+                    setTimeout(() => {
+                        console.log('Hiding toast');
+                        toast.classList.remove('show');
+                    }, 5000); // Hide after 5 seconds
+                }
+
+                // Trigger toast immediately
+                showToast();
+
+                // For debugging: Log when toast is clicked (optional)
+                toast.addEventListener('click', () => {
+                    console.log('Toast clicked');
+                    toast.classList.remove('show');
+                });
+            } catch (error) {
+                console.error('Error initializing custom toast:', error);
+            }
+        });
+    </script>
 </body>
 </html>

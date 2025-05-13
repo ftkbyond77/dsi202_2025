@@ -168,7 +168,7 @@ Treevaq ได้รับการออกแบบให้รองรับ
    ```bash
    docker-compose build
    ```
-   ⚠️ *Warning:* ในขั้นตอนนี้อาจใช้เวลานานในครั้งแรก! (เครื่องทดสอบอยู่ที่ประมาณ 10 นาที +-) เนื่องจากต้องมีการติดตั้ง torch และ transformers พร้อมกับ load cache สำหรับ chatbot model
+   ⚠️ *Warning:* ในขั้นตอนนี้อาจใช้เวลานานในครั้งแรก! (เครื่องทดสอบอยู่ที่ประมาณ 10 นาที +- (ประมาณ 317.1 MB)) เนื่องจากต้องมีการติดตั้ง torch และ transformers พร้อมกับ load cache สำหรับ chatbot model
 
 4. **Start the Application**:
 
