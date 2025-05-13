@@ -4,11 +4,11 @@
 {% block title %}Treevaq Community{% endblock %}
 
 {% block head_placeholder %}
-<!-- React and ReactDOM CDN -->
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<!-- React and ReactDOM CDN (latest stable versions) -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
 <!-- Babel CDN for JSX transformation -->
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.26.8/babel.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -24,741 +24,766 @@
 <script src="{% static 'app1/community.js' %}"></script>
 
 <script type="text/babel">
-  // Debug log to confirm script execution
   console.log('Community script loaded and Babel active');
 
-const CATEGORIES = [
-  { name: 'All Posts', icon: 'fa-globe' },
-  { name: 'Product Reviews', icon: 'fa-star' },
-  { name: 'Tips & Guides', icon: 'fa-book' },
-  { name: 'Comparisons', icon: 'fa-balance-scale' },
-  { name: 'Project Showcases', icon: 'fa-images' },
-  { name: 'Questions', icon: 'fa-question-circle' }
-];
+  const CATEGORIES = [
+    { name: 'All Posts', icon: 'fa-globe' },
+    { name: 'Product Reviews', icon: 'fa-star' },
+    { name: 'Tips & Guides', icon: 'fa-book' },
+    { name: 'Comparisons', icon: 'fa-balance-scale' },
+    { name: 'Project Showcases', icon: 'fa-images' },
+    { name: 'Questions', icon: 'fa-question-circle' }
+  ];
 
-const TRENDING_TOPICS = [
-  { name: 'Vertical Gardening', posts: 145 },
-  { name: 'Composting Methods', posts: 132 },
-  { name: 'Water Conservation', posts: 118 },
-  { name: 'Eco-Friendly Pest Control', posts: 103 },
-  { name: 'Indoor Gardening', posts: 97 }
-];
+  const TRENDING_TOPICS = [
+    { name: 'Vertical Gardening', posts: 145 },
+    { name: 'Composting Methods', posts: 132 },
+    { name: 'Water Conservation', posts: 118 },
+    { name: 'Eco-Friendly Pest Control', posts: 103 },
+    { name: 'Indoor Gardening', posts: 97 }
+  ];
 
-// Main Community Component
-function Community() {
-  const [posts, setPosts] = React.useState([]);
-  const [likedPosts, setLikedPosts] = React.useState({});
-  const [selectedCategory, setSelectedCategory] = React.useState('All Posts');
-  const [showNewPostModal, setShowNewPostModal] = React.useState(false);
-  const [showDropdown, setShowDropdown] = React.useState({});
-  const [newPost, setNewPost] = React.useState({
-    title: '',
-    content: '',
-    category: '',
-    image: null
-  });
-  const [commentTexts, setCommentTexts] = React.useState({});
-  const [showCommentForm, setShowCommentForm] = React.useState({});
-  const [comments, setComments] = React.useState({});
-  const [showAllComments, setShowAllComments] = React.useState({});
-  const [isDarkMode, setIsDarkMode] = React.useState(false);
-  const [error, setError] = React.useState(null);
+  // Error Boundary Component
+  class ErrorBoundary extends React.Component {
+    state = { hasError: false, errorMessage: '' };
 
-  // Debug log to confirm component mounting
-  console.log('Community component mounted');
-
-  // Fetch posts from backend
-  React.useEffect(() => {
-    fetch('/api/community/posts/')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('Posts fetched:', data);
-        if (Array.isArray(data)) {
-          const formattedPosts = data.map(post => ({
-            id: post.id,
-            username: post.user?.username || post.username || 'Anonymous',
-            title: post.title || 'No Title',
-            content: post.content || '',
-            timestamp: post.timestamp || 'Unknown',
-            likes: post.likes || 0,
-            comments: post.comments || 0,
-            category: post.category || 'Uncategorized',
-            image: post.image ? `${window.media_url}${post.image}` : null,
-            is_owner: post.is_owner || false
-          }));
-          setPosts(formattedPosts);
-          setError(null);
-        } else {
-          throw new Error('Invalid data format from API');
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching posts:', error);
-        setError('Failed to load posts. Please try again later.');
-        setPosts([]);
-      });
-  }, []);
-
-  // Check for dark mode
-  React.useEffect(() => {
-    const isDark = document.body.classList.contains('dark-mode');
-    setIsDarkMode(isDark);
-    console.log('Dark mode:', isDark);
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'class') {
-          setIsDarkMode(document.body.classList.contains('dark-mode'));
-        }
-      });
-    });
-
-    observer.observe(document.body, { attributes: true });
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Fetch comments for a post
-  const fetchComments = (postId) => {
-    fetch(`/api/community/comments/${postId}/`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log(`Comments fetched for post ${postId}:`, data);
-        setComments(prev => ({
-          ...prev,
-          [postId]: data.map(comment => ({
-            id: comment.id,
-            content: comment.content,
-            username: comment.user?.username || 'Anonymous',
-            created_at: comment.created_at || 'Unknown',
-            is_owner: comment.is_owner || false
-          }))
-        }));
-      })
-      .catch(error => {
-        console.error(`Error fetching comments for post ${postId}:`, error);
-        setError('Failed to load comments. Please try again.');
-      });
-  };
-
-  const handleLike = (postId) => {
-    const isLiked = likedPosts[postId] || false;
-    fetch('/api/community/like/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
-      },
-      body: JSON.stringify({ post_id: postId })
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Failed to like/unlike post');
-      }
-      return response.json();
-    })
-    .then(data => {
-      setLikedPosts(prev => ({
-        ...prev,
-        [postId]: !isLiked
-      }));
-      setPosts(posts.map(post =>
-        post.id === postId ? { ...post, likes: data.likes_count } : post
-      ));
-    })
-    .catch(error => {
-      console.error('Error liking post:', error);
-      setError('Failed to like/unlike post. Please try again.');
-    });
-  };
-
-  const handleDelete = (postId) => {
-    fetch('/api/community/delete/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
-      },
-      body: JSON.stringify({ post_id: postId })
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Failed to delete post');
-      }
-      return response.json();
-    })
-    .then(data => {
-      setPosts(posts.filter(post => post.id !== postId));
-      setShowDropdown(prev => ({ ...prev, [postId]: false }));
-    })
-    .catch(error => {
-      console.error('Error deleting post:', error);
-      setError('Failed to delete post. Please try again.');
-    });
-  };
-
-  const handleDeleteComment = (postId, commentId) => {
-    fetch('/api/community/comment/delete/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
-      },
-      body: JSON.stringify({ comment_id: commentId })
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Failed to delete comment');
-      }
-      return response.json();
-    })
-    .then(data => {
-      setComments(prev => ({
-        ...prev,
-        [postId]: prev[postId].filter(comment => comment.id !== commentId)
-      }));
-      setPosts(posts.map(post =>
-        post.id === postId ? { ...post, comments: post.comments - 1 } : post
-      ));
-    })
-    .catch(error => {
-      console.error('Error deleting comment:', error);
-      setError('Failed to delete comment. Please try again.');
-    });
-  };
-
-  const toggleDropdown = (postId) => {
-    setShowDropdown(prev => ({
-      ...prev,
-      [postId]: !prev[postId]
-    }));
-  };
-
-  const handleCommentButtonClick = (postId) => {
-    setShowCommentForm(prev => ({
-      ...prev,
-      [postId]: !prev[postId]
-    }));
-    if (!comments[postId]) {
-      fetchComments(postId);
+    static getDerivedStateFromError(error) {
+      return { hasError: true, errorMessage: error.message };
     }
-  };
 
-  const handleCommentChange = (postId, text) => {
-    setCommentTexts(prev => ({
-      ...prev,
-      [postId]: text
-    }));
-  };
+    render() {
+      if (this.state.hasError) {
+        return (
+          <div className="p-4 text-red-600">
+            <h2>Something went wrong.</h2>
+            <p>{this.state.errorMessage}</p>
+            <p>Please check the console for more details.</p>
+          </div>
+        );
+      }
+      return this.props.children;
+    }
+  }
 
-  const handleSubmitComment = (postId) => {
-    if (commentTexts[postId]?.trim()) {
-      fetch('/api/community/comment/', {
+  // Main Community Component
+  function Community() {
+    const [posts, setPosts] = React.useState([]);
+    const [likedPosts, setLikedPosts] = React.useState({});
+    const [selectedCategory, setSelectedCategory] = React.useState('All Posts');
+    const [showNewPostModal, setShowNewPostModal] = React.useState(false);
+    const [showDropdown, setShowDropdown] = React.useState({});
+    const [newPost, setNewPost] = React.useState({
+      title: '',
+      content: '',
+      category: '',
+      image: null
+    });
+    const [commentTexts, setCommentTexts] = React.useState({});
+    const [showCommentForm, setShowCommentForm] = React.useState({});
+    const [comments, setComments] = React.useState({});
+    const [showAllComments, setShowAllComments] = React.useState({});
+    const [isDarkMode, setIsDarkMode] = React.useState(false);
+    const [error, setError] = React.useState(null);
+
+    console.log('Community component mounted');
+
+    // Fetch posts from backend
+    React.useEffect(() => {
+      console.log('Fetching posts...');
+      fetch('/api/community/posts/')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Posts fetched:', data);
+          if (Array.isArray(data)) {
+            const formattedPosts = data.map(post => ({
+              id: post.id,
+              username: post.user?.username || post.username || 'Anonymous',
+              title: post.title || 'No Title',
+              content: post.content || '',
+              timestamp: post.timestamp || 'Unknown',
+              likes: post.likes || 0,
+              comments: post.comments || 0,
+              category: post.category || 'Uncategorized',
+              image: post.image ? `${window.media_url}${post.image}` : null,
+              is_owner: post.is_owner || false
+            }));
+            setPosts(formattedPosts);
+            setError(null);
+          } else {
+            throw new Error('Invalid data format from API');
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching posts:', error);
+          setError('Failed to load posts. Please try again later.');
+          setPosts([]);
+        });
+    }, []);
+
+    // Check for dark mode
+    React.useEffect(() => {
+      const isDark = document.body.classList.contains('dark-mode');
+      setIsDarkMode(isDark);
+      console.log('Dark mode:', isDark);
+
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === 'class') {
+            setIsDarkMode(document.body.classList.contains('dark-mode'));
+          }
+        });
+      });
+
+      observer.observe(document.body, { attributes: true });
+
+      return () => observer.disconnect();
+    }, []);
+
+    // Fetch comments for a post
+    const fetchComments = (postId) => {
+      fetch(`/api/community/comments/${postId}/`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log(`Comments fetched for post ${postId}:`, data);
+          setComments(prev => ({
+            ...prev,
+            [postId]: data.map(comment => ({
+              id: comment.id,
+              content: comment.content,
+              username: comment.user?.username || 'Anonymous',
+              created_at: comment.created_at || 'Unknown',
+              is_owner: comment.is_owner || false
+            }))
+          }));
+        })
+        .catch(error => {
+          console.error(`Error fetching comments for post ${postId}:`, error);
+          setError('Failed to load comments. Please try again.');
+        });
+    };
+
+    const handleLike = (postId) => {
+      const isLiked = likedPosts[postId] || false;
+      fetch('/api/community/like/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': getCookie('csrftoken')
         },
-        body: JSON.stringify({
-          post_id: postId,
-          comment: commentTexts[postId]
-        })
+        body: JSON.stringify({ post_id: postId })
       })
       .then(response => {
         if (!response.ok) {
-          throw new Error('Failed to post comment');
+          throw new Error('Failed to like/unlike post');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setLikedPosts(prev => ({
+          ...prev,
+          [postId]: !isLiked
+        }));
+        setPosts(posts.map(post =>
+          post.id === postId ? { ...post, likes: data.likes_count } : post
+        ));
+      })
+      .catch(error => {
+        console.error('Error liking post:', error);
+        setError('Failed to like/unlike post. Please try again.');
+      });
+    };
+
+    const handleDelete = (postId) => {
+      fetch('/api/community/delete/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ post_id: postId })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to delete post');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setPosts(posts.filter(post => post.id !== postId));
+        setShowDropdown(prev => ({ ...prev, [postId]: false }));
+      })
+      .catch(error => {
+        console.error('Error deleting post:', error);
+        setError('Failed to delete post. Please try again.');
+      });
+    };
+
+    const handleDeleteComment = (postId, commentId) => {
+      fetch('/api/community/comment/delete/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ comment_id: commentId })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to delete comment');
         }
         return response.json();
       })
       .then(data => {
         setComments(prev => ({
           ...prev,
-          [postId]: [
-            ...(prev[postId] || []),
-            {
-              id: data.comment_id,
-              content: data.content,
-              username: data.user || 'Anonymous',
-              created_at: data.created_at || 'Unknown',
-              is_owner: true
-            }
-          ]
+          [postId]: prev[postId].filter(comment => comment.id !== commentId)
         }));
         setPosts(posts.map(post =>
-          post.id === postId ? { ...post, comments: post.comments + 1 } : post
+          post.id === postId ? { ...post, comments: post.comments - 1 } : post
         ));
-        setCommentTexts(prev => ({
-          ...prev,
-          [postId]: ''
-        }));
-        setShowCommentForm(prev => ({
-          ...prev,
-          [postId]: false
-        }));
       })
       .catch(error => {
-        console.error('Error posting comment:', error);
-        setError('Failed to post comment. Please try again.');
+        console.error('Error deleting comment:', error);
+        setError('Failed to delete comment. Please try again.');
       });
-    }
-  };
+    };
 
-  const handleShare = (postId) => {
-    alert(`Sharing post ID ${postId}. This would open sharing options for X and Facebook.`);
-  };
+    const toggleDropdown = (postId) => {
+      setShowDropdown(prev => ({
+        ...prev,
+        [postId]: !prev[postId]
+      }));
+    };
 
-  const toggleNewPostModal = () => {
-    console.log('Toggling new post modal, current state:', showNewPostModal);
-    setShowNewPostModal(prev => !prev);
-  };
+    const handleCommentButtonClick = (postId) => {
+      setShowCommentForm(prev => ({
+        ...prev,
+        [postId]: !prev[postId]
+      }));
+      if (!comments[postId]) {
+        fetchComments(postId);
+      }
+    };
 
-  const handleNewPostChange = (e) => {
-    const { name, value } = e.target;
-    setNewPost(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+    const handleCommentChange = (postId, text) => {
+      setCommentTexts(prev => ({
+        ...prev,
+        [postId]: text
+      }));
+    };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    setNewPost(prev => ({
-      ...prev,
-      image: file
-    }));
-  };
-
-  const handleSubmitPost = () => {
-    if (!newPost.title || !newPost.content || !newPost.category) {
-      setError('Title, content, and category are required');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('title', newPost.title);
-    formData.append('content', newPost.content);
-    formData.append('category', newPost.category);
-    if (newPost.image) {
-      formData.append('image', newPost.image);
-    }
-
-    fetch('/api/community/posts/', {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': getCookie('csrftoken')
-      },
-      body: formData
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(err => {
-          throw new Error(err.error || 'Failed to create post');
+    const handleSubmitComment = (postId) => {
+      if (commentTexts[postId]?.trim()) {
+        fetch('/api/community/comment/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({
+            post_id: postId,
+            comment: commentTexts[postId]
+          })
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to post comment');
+          }
+          return response.json();
+        })
+        .then(data => {
+          setComments(prev => ({
+            ...prev,
+            [postId]: [
+              ...(prev[postId] || []),
+              {
+                id: data.comment_id,
+                content: data.content,
+                username: data.user || 'Anonymous',
+                created_at: data.created_at || 'Unknown',
+                is_owner: true
+              }
+            ]
+          }));
+          setPosts(posts.map(post =>
+            post.id === postId ? { ...post, comments: post.comments + 1 } : post
+          ));
+          setCommentTexts(prev => ({
+            ...prev,
+            [postId]: ''
+          }));
+          setShowCommentForm(prev => ({
+            ...prev,
+            [postId]: false
+          }));
+        })
+        .catch(error => {
+          console.error('Error posting comment:', error);
+          setError('Failed to post comment. Please try again.');
         });
       }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Post created:', data);
-      console.log('New post image URL:', data.image); // Debug log for image URL
-      setPosts([{
-        id: data.id,
-        username: data.username || 'Anonymous',
-        title: data.title,
-        content: data.content,
-        timestamp: data.timestamp,
-        likes: data.likes || 0,
-        comments: data.comments || 0,
-        category: data.category,
-        image: data.image || null, // Use backend-provided URL directly
-        is_owner: data.is_owner || true
-      }, ...posts]);
-      setNewPost({
-        title: '',
-        content: '',
-        category: '',
-        image: null
+    };
+
+    const handleShare = (postId) => {
+      alert(`Sharing post ID ${postId}. This would open sharing options for X and Facebook.`);
+    };
+
+    const toggleNewPostModal = () => {
+      console.log('Toggling new post modal, current state:', showNewPostModal);
+      setShowNewPostModal(prev => !prev);
+    };
+
+    const handleNewPostChange = (e) => {
+      const { name, value } = e.target;
+      setNewPost(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
+
+    const handleImageUpload = (e) => {
+      const file = e.target.files[0];
+      setNewPost(prev => ({
+        ...prev,
+        image: file
+      }));
+    };
+
+    const handleSubmitPost = () => {
+      if (!newPost.title || !newPost.content || !newPost.category) {
+        setError('Title, content, and category are required');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('title', newPost.title);
+      formData.append('content', newPost.content);
+      formData.append('category', newPost.category);
+      if (newPost.image) {
+        formData.append('image', newPost.image);
+      }
+
+      fetch('/api/community/posts/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            throw new Error(err.error || 'Failed to create post');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Post created:', data);
+        console.log('New post image URL:', data.image);
+        setPosts([{
+          id: data.id,
+          username: data.username || 'Anonymous',
+          title: data.title,
+          content: data.content,
+          timestamp: data.timestamp,
+          likes: data.likes || 0,
+          comments: data.comments || 0,
+          category: data.category,
+          image: data.image || null,
+          is_owner: data.is_owner || true
+        }, ...posts]);
+        setNewPost({
+          title: '',
+          content: '',
+          category: '',
+          image: null
+        });
+        setShowNewPostModal(false);
+        setError(null);
+      })
+      .catch(error => {
+        console.error('Error submitting post:', error);
+        setError(error.message || 'Failed to create post. Please try again.');
       });
-      setShowNewPostModal(false);
-      setError(null);
-    })
-    .catch(error => {
-      console.error('Error submitting post:', error);
-      setError(error.message || 'Failed to create post. Please try again.');
-    });
-  };
+    };
 
-  const toggleShowAllComments = (postId) => {
-    setShowAllComments(prev => ({
-      ...prev,
-      [postId]: !prev[postId]
-    }));
-  };
+    const toggleShowAllComments = (postId) => {
+      setShowAllComments(prev => ({
+        ...prev,
+        [postId]: !prev[postId]
+      }));
+    };
 
-  const filteredPosts = selectedCategory === 'All Posts' 
-    ? posts 
-    : posts.filter(post => post.category === selectedCategory);
+    const filteredPosts = selectedCategory === 'All Posts' 
+      ? posts 
+      : posts.filter(post => post.category === selectedCategory);
 
-  const getBgClass = () => isDarkMode ? 'bg-gray-800' : 'bg-white';
-  const getSecondaryBgClass = () => isDarkMode ? 'bg-gray-700' : 'bg-gray-50';
-  const getTextClass = () => isDarkMode ? 'text-gray-200' : 'text-gray-800';
-  const getSecondaryTextClass = () => isDarkMode ? 'text-gray-300' : 'text-gray-600';
+    const getBgClass = () => isDarkMode ? 'bg-gray-800' : 'bg-white';
+    const getSecondaryBgClass = () => isDarkMode ? 'bg-gray-700' : 'bg-gray-50';
+    const getTextClass = () => isDarkMode ? 'text-gray-200' : 'text-gray-800';
+    const getSecondaryTextClass = () => isDarkMode ? 'text-gray-300' : 'text-gray-600';
 
-  return (
-    <div className="flex flex-col md:flex-row w-full min-h-screen">
-      {/* Left Sidebar */}
-      <aside className={`w-full md:w-64 p-4 ${getSecondaryBgClass()} border-r ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-        <div className="mb-8">
-          <div className="flex items-center mb-4">
-            <i className="fas fa-chart-line mr-2 text-green-600"></i>
-            <h3 className={`font-bold ${getTextClass()}`}>Trending Topics</h3>
+    return (
+      <div className="flex flex-col md:flex-row w-full min-h-screen">
+        {/* Left Sidebar */}
+        <aside className={`w-full md:w-64 p-4 ${getSecondaryBgClass()} border-r ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div className="mb-8">
+            <div className="flex items-center mb-4">
+              <i className="fas fa-chart-line mr-2 text-green-600"></i>
+              <h3 className={`font-bold ${getTextClass()}`}>Trending Topics</h3>
+            </div>
+            <ul>
+              {TRENDING_TOPICS.map((topic, index) => (
+                <li key={index} className={`flex justify-between items-center py-2 px-3 mb-1 rounded ${isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'}`}>
+                  <span className={getTextClass()}>{topic.name}</span>
+                  <span className="text-sm text-green-600">{topic.posts} posts</span>
+                </li>
+              ))}
+            </ul>
+            {/* Add Post Button */}
+            <button
+              className={`w-full mt-4 py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700 transition-colors ${isDarkMode ? 'hover:bg-green-700' : ''}`}
+              onClick={toggleNewPostModal}
+            >
+              Create New Post
+            </button>
           </div>
-          <ul>
-            {TRENDING_TOPICS.map((topic, index) => (
-              <li key={index} className={`flex justify-between items-center py-2 px-3 mb-1 rounded ${isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'}`}>
-                <span className={getTextClass()}>{topic.name}</span>
-                <span className="text-sm text-green-600">{topic.posts} posts</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        
-        <div>
-          <h3 className={`font-bold mb-4 ${getTextClass()}`}>Categories</h3>
-          <ul>
-            {CATEGORIES.map((category, index) => (
-              <li 
-                key={index} 
-                className={`py-2 px-3 mb-1 rounded cursor-pointer ${
-                  selectedCategory === category.name 
-                    ? 'bg-green-600 text-white' 
-                    : `${isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} ${getTextClass()}`
-                }`}
-                onClick={() => setSelectedCategory(category.name)}
-              >
-                <i className={`fas ${category.icon} mr-2`}></i>
-                {category.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 p-4">
-        {error && <p className={getTextClass()}>{error}</p>}
-        <div className="mb-6 flex justify-between items-center">
-          <h1 className={`text-2xl font-bold ${getTextClass()}`}>
-            {selectedCategory === 'All Posts' ? 'Community' : selectedCategory}
-          </h1>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search posts..."
-              className={`pl-10 pr-4 py-2 rounded-full border ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-            />
-            <i className="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+          
+          <div>
+            <h3 className={`font-bold mb-4 ${getTextClass()}`}>Categories</h3>
+            <ul>
+              {CATEGORIES.map((category, index) => (
+                <li 
+                  key={index} 
+                  className={`py-2 px-3 mb-1 rounded cursor-pointer ${
+                    selectedCategory === category.name 
+                      ? 'bg-green-600 text-white' 
+                      : `${isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} ${getTextClass()}`
+                  }`}
+                  onClick={() => setSelectedCategory(category.name)}
+                >
+                  <i className={`fas ${category.icon} mr-2`}></i>
+                  {category.name}
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
+        </aside>
 
-        {/* Posts */}
-        <div className="space-y-6">
-          {filteredPosts.length === 0 ? (
-            <p className={getTextClass()}>No posts available.</p>
-          ) : (
-            filteredPosts.map(post => (
-              <div 
-                key={post.id} 
-                className={`${getBgClass()} rounded-lg shadow-md overflow-hidden border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}
-              >
-                <div className="p-4 relative">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
-                        <span className="text-green-800 font-bold">{post.username.charAt(0)}</span>
-                      </div>
-                      <div>
-                        <h3 className={`font-bold ${getTextClass()}`}>{post.username}</h3>
-                        <p className="text-xs text-gray-500">{post.timestamp}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded mr-2">{post.category}</span>
-                      {post.is_owner && (
-                        <div className="relative">
-                          <button 
-                            onClick={() => toggleDropdown(post.id)} 
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            <i className="fas fa-ellipsis-v"></i>
-                          </button>
-                          {showDropdown[post.id] && (
-                            <div className={`absolute right-0 mt-2 w-32 ${getBgClass()} border rounded shadow-lg z-10`}>
-                              <button 
-                                onClick={() => handleDelete(post.id)} 
-                                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-100"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          )}
+        {/* Main Content */}
+        <main className="flex-1 p-4">
+          {error && <p className={getTextClass()}>{error}</p>}
+          <div className="mb-6 flex justify-between items-center">
+            <h1 className={`text-2xl font-bold ${getTextClass()}`}>
+              {selectedCategory === 'All Posts' ? 'Community' : selectedCategory}
+            </h1>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search posts..."
+                className={`pl-10 pr-4 py-2 rounded-full border ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+              />
+              <i className="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+            </div>
+          </div>
+
+          {/* Posts */}
+          <div className="space-y-6">
+            {filteredPosts.length === 0 ? (
+              <p className={getTextClass()}>No posts available.</p>
+            ) : (
+              filteredPosts.map(post => (
+                <div 
+                  key={post.id} 
+                  className={`${getBgClass()} rounded-lg shadow-md overflow-hidden border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}
+                >
+                  <div className="p-4 relative">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                          <span className="text-green-800 font-bold">{post.username.charAt(0)}</span>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <h2 className={`text-xl font-bold mb-2 ${getTextClass()}`}>{post.title}</h2>
-                  <p className={`mb-4 ${getSecondaryTextClass()}`}>{post.content}</p>
-                  
-                  {post.image && (
-                    <div className="mb-4">
-                      <img 
-                        src={post.image} 
-                        alt={post.title} 
-                        className="w-full h-auto rounded-lg"
-                        onError={(e) => console.error('Error loading image:', post.image)}
-                      />
-                    </div>
-                  )}
-                  
-                  <div className={`flex pt-3 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                    <button 
-                      className={`flex items-center mr-6 ${likedPosts[post.id] ? 'text-green-600' : 'text-gray-500'} hover:text-green-600`}
-                      onClick={() => handleLike(post.id)}
-                    >
-                      <i className="fas fa-thumbs-up mr-1"></i>
-                      <span>{post.likes}</span>
-                    </button>
-                    
-                    <button 
-                      className="flex items-center mr-6 text-gray-500 hover:text-green-600"
-                      onClick={() => handleCommentButtonClick(post.id)}
-                    >
-                      <i className="fas fa-comment mr-1"></i>
-                      <span>{post.comments}</span>
-                    </button>
-                    
-                    <button 
-                      className="flex items-center text-gray-500 hover:text-green-600"
-                      onClick={() => handleShare(post.id)}
-                    >
-                      <i className="fas fa-share mr-1"></i>
-                      <span>Share</span>
-                    </button>
-                  </div>
-                  
-                  {showCommentForm[post.id] && (
-                    <div className="mt-4">
-                      <textarea
-                        className={`w-full p-2 rounded border ${
-                          isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                        }`}
-                        rows="2"
-                        placeholder="Write a comment..."
-                        value={commentTexts[post.id] || ''}
-                        onChange={(e) => handleCommentChange(post.id, e.target.value)}
-                      ></textarea>
-                      <button
-                        className="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                        onClick={() => handleSubmitComment(post.id)}
-                      >
-                        Post Comment
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Comments Section */}
-                  {comments[post.id] && (
-                    <div className="mt-4">
-                      {(showAllComments[post.id] ? comments[post.id] : comments[post.id].slice(0, 5)).map(comment => (
-                        <div key={comment.id} className={`p-3 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
-                                <span className="text-green-800 font-bold">{comment.username.charAt(0)}</span>
+                        <div>
+                          <h3 className={`font-bold ${getTextClass()}`}>{post.username}</h3>
+                          <p className="text-xs text-gray-500">{post.timestamp}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded mr-2">{post.category}</span>
+                        {post.is_owner && (
+                          <div className="relative">
+                            <button 
+                              onClick={() => toggleDropdown(post.id)} 
+                              className="text-gray-500 hover:text-gray-700"
+                            >
+                              <i className="fas fa-ellipsis-v"></i>
+                            </button>
+                            {showDropdown[post.id] && (
+                              <div className={`absolute right-0 mt-2 w-32 ${getBgClass()} border rounded shadow-lg z-10`}>
+                                <button 
+                                  onClick={() => handleDelete(post.id)} 
+                                  className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-100"
+                                >
+                                  Delete
+                                </button>
                               </div>
-                              <div>
-                                <p className={`font-bold ${getTextClass()}`}>{comment.username}</p>
-                                <p className="text-xs text-gray-500">{comment.created_at}</p>
-                              </div>
-                            </div>
-                            {comment.is_owner && (
-                              <button
-                                onClick={() => handleDeleteComment(post.id, comment.id)}
-                                className="text-red-600 hover:text-red-800"
-                              >
-                                <i className="fas fa-trash"></i>
-                              </button>
                             )}
                           </div>
-                          <p className={`mt-2 ${getSecondaryTextClass()}`}>{comment.content}</p>
-                        </div>
-                      ))}
-                      {comments[post.id].length > 5 && (
-                        <button
-                          className={`mt-2 text-green-600 hover:text-green-700`}
-                          onClick={() => toggleShowAllComments(post.id)}
-                        >
-                          {showAllComments[post.id] ? 'Show less' : `Show ${comments[post.id].length - 5} more comments`}
-                        </button>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  )}
+                    
+                    <h2 className={`text-xl font-bold mb-2 ${getTextClass()}`}>{post.title}</h2>
+                    <p className={`mb-4 ${getSecondaryTextClass()}`}>{post.content}</p>
+                    
+                    {post.image && (
+                      <div className="mb-4">
+                        <img 
+                          src={post.image} 
+                          alt={post.title} 
+                          className="w-full h-auto rounded-lg"
+                          onError={(e) => console.error('Error loading image:', post.image)}
+                        />
+                      </div>
+                    )}
+                    
+                    <div className={`flex pt-3 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <button 
+                        className={`flex items-center mr-6 ${likedPosts[post.id] ? 'text-green-600' : 'text-gray-500'} hover:text-green-600`}
+                        onClick={() => handleLike(post.id)}
+                      >
+                        <i className="fas fa-thumbs-up mr-1"></i>
+                        <span>{post.likes}</span>
+                      </button>
+                      
+                      <button 
+                        className="flex items-center mr-6 text-gray-500 hover:text-green-600"
+                        onClick={() => handleCommentButtonClick(post.id)}
+                      >
+                        <i className="fas fa-comment mr-1"></i>
+                        <span>{post.comments}</span>
+                      </button>
+                      
+                      <button 
+                        className="flex items-center text-gray-500 hover:text-green-600"
+                        onClick={() => handleShare(post.id)}
+                      >
+                        <i className="fas fa-share mr-1"></i>
+                        <span>Share</span>
+                      </button>
+                    </div>
+                    
+                    {showCommentForm[post.id] && (
+                      <div className="mt-4">
+                        <textarea
+                          className={`w-full p-2 rounded border ${
+                            isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                          rows="2"
+                          placeholder="Write a comment..."
+                          value={commentTexts[post.id] || ''}
+                          onChange={(e) => handleCommentChange(post.id, e.target.value)}
+                        ></textarea>
+                        <button
+                          className="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                          onClick={() => handleSubmitComment(post.id)}
+                        >
+                          Post Comment
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Comments Section */}
+                    {comments[post.id] && (
+                      <div className="mt-4">
+                        {(showAllComments[post.id] ? comments[post.id] : comments[post.id].slice(0, 5)).map(comment => (
+                          <div key={comment.id} className={`p-3 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                                  <span className="text-green-800 font-bold">{comment.username.charAt(0)}</span>
+                                </div>
+                                <div>
+                                  <p className={`font-bold ${getTextClass()}`}>{comment.username}</p>
+                                  <p className="text-xs text-gray-500">{comment.created_at}</p>
+                                </div>
+                              </div>
+                              {comment.is_owner && (
+                                <button
+                                  onClick={() => handleDeleteComment(post.id, comment.id)}
+                                  className="text-red-600 hover:text-red-800"
+                                >
+                                  <i className="fas fa-trash"></i>
+                                </button>
+                              )}
+                            </div>
+                            <p className={`mt-2 ${getSecondaryTextClass()}`}>{comment.content}</p>
+                          </div>
+                        ))}
+                        {comments[post.id].length > 5 && (
+                          <button
+                            className={`mt-2 text-green-600 hover:text-green-700`}
+                            onClick={() => toggleShowAllComments(post.id)}
+                          >
+                            {showAllComments[post.id] ? 'Show less' : `Show ${comments[post.id].length - 5} more comments`}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-      </main>
+              ))
+            )}
+          </div>
+        </main>
 
-      {/* Floating Post Button */}
-      <button
-        className="fixed bottom-6 right-6 w-14 h-14 bg-green-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-green-700 transition-colors z-1000"
-        onClick={toggleNewPostModal}
-      >
-        <i className="fas fa-plus-circle"></i>
-      </button>
-
-      {/* New Post Modal */}
-      {showNewPostModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`${getBgClass()} rounded-lg shadow-xl p-6 w-full max-w-lg`}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className={`text-xl font-bold ${getTextClass()}`}>Create New Post</h2>
-              <button onClick={toggleNewPostModal} className="text-gray-500 hover:text-gray-700">
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            
-            <div>
-              <div className="mb-4">
-                <label className={`block mb-1 ${getTextClass()}`}>Title</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={newPost.title}
-                  onChange={handleNewPostChange}
-                  className={`w-full p-2 border rounded ${
-                    isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                  }`}
-                  required
-                />
-              </div>
-              
-              <div className="mb-4">
-                <label className={`block mb-1 ${getTextClass()}`}>Content</label>
-                <textarea
-                  name="content"
-                  value={newPost.content}
-                  onChange={handleNewPostChange}
-                  rows="5"
-                  className={`w-full p-2 border rounded ${
-                    isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                  }`}
-                  required
-                ></textarea>
-              </div>
-              
-              <div className="mb-4">
-                <label className={`block mb-1 ${getTextClass()}`}>Category</label>
-                <select
-                  name="category"
-                  value={newPost.category}
-                  onChange={handleNewPostChange}
-                  className={`w-full p-2 border rounded ${
-                    isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                  }`}
-                  required
-                >
-                  <option value="">Select a category</option>
-                  {CATEGORIES.filter(cat => cat.name !== 'All Posts').map((category, index) => (
-                    <option key={index} value={category.name}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="mb-4">
-                <label className={`block mb-1 ${getTextClass()}`}>Image (Optional)</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className={`w-full p-2 border rounded ${
-                    isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                  }`}
-                />
-              </div>
-              
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  className={`px-4 py-2 border rounded ${
-                    isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
-                  }`}
-                  onClick={toggleNewPostModal}
-                >
-                  Cancel
+        {/* New Post Modal */}
+        {showNewPostModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className={`${getBgClass()} rounded-lg shadow-xl p-6 w-full max-w-lg`}>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className={`text-xl font-bold ${getTextClass()}`}>Create New Post</h2>
+                <button onClick={toggleNewPostModal} className="text-gray-500 hover:text-gray-700">
+                  <i className="fas fa-times"></i>
                 </button>
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                  onClick={handleSubmitPost}
-                >
-                  Post
-                </button>
+              </div>
+              
+              <div>
+                <div className="mb-4">
+                  <label className={`block mb-1 ${getTextClass()}`}>Title</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={newPost.title}
+                    onChange={handleNewPostChange}
+                    className={`w-full p-2 border rounded ${
+                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                    required
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className={`block mb-1 ${getTextClass()}`}>Content</label>
+                  <textarea
+                    name="content"
+                    value={newPost.content}
+                    onChange={handleNewPostChange}
+                    rows="5"
+                    className={`w-full p-2 border rounded ${
+                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                    required
+                  ></textarea>
+                </div>
+                
+                <div className="mb-4">
+                  <label className={`block mb-1 ${getTextClass()}`}>Category</label>
+                  <select
+                    name="category"
+                    value={newPost.category}
+                    onChange={handleNewPostChange}
+                    className={`w-full p-2 border rounded ${
+                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {CATEGORIES.filter(cat => cat.name !== 'All Posts').map((category, index) => (
+                      <option key={index} value={category.name}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="mb-4">
+                  <label className={`block mb-1 ${getTextClass()}`}>Image (Optional)</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className={`w-full p-2 border rounded ${
+                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    }`}
+                  />
+                </div>
+                
+                <div className="FISHERIESflex justify-end space-x-3">
+                  <button
+                    type="button"
+                    className={`px-4 py-2 border rounded ${
+                      isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                    }`}
+                    onClick={toggleNewPostModal}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    onClick={handleSubmitPost}
+                  >
+                    Post
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
+        )}
+      </div>
+    );
+  }
 
-// Helper function to get CSRF token
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
+  // Helper function to get CSRF token
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
       }
     }
+    return cookieValue;
   }
-  return cookieValue;
-}
 
-// Render with error handling
-try {
-  console.log('Attempting to find community-root');
-  const root = document.getElementById('community-root');
-  if (root) {
-    console.log('community-root found, rendering Community');
-    const media_url = "{% get_media_prefix %}";
-    window.media_url = media_url;
-    ReactDOM.render(<Community />, root);
-    console.log('Community rendered successfully');
-  } else {
-    console.error('community-root element not found');
+  // Render with error handling
+  try {
+    console.log('Attempting to find community-root');
+    const root = document.getElementById('community-root');
+    if (root) {
+      console.log('community-root found, rendering Community');
+      const media_url = "{% get_media_prefix %}";
+      window.media_url = media_url;
+      ReactDOM.render(
+        <ErrorBoundary>
+          <Community />
+        </ErrorBoundary>,
+        root
+      );
+      console.log('Community rendered successfully');
+    } else {
+      console.error('community-root element not found');
+      document.getElementById('debug-message').style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Error rendering Community:', error);
     document.getElementById('debug-message').style.display = 'block';
   }
-} catch (error) {
-  console.error('Error rendering Community:', error);
-  document.getElementById('debug-message').style.display = 'block';
-}
 </script>
 {% endblock %}

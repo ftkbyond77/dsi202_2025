@@ -14,3 +14,16 @@ Payment System (Promptpay QR Code)
 
     other:
     - C++ for linux development
+
+    for ubuntu/debian (Linux os)
+    - sudo apt update
+    - sudo apt install build-essential python3-dev
+
+    (Linux Optional)
+    
+    for CentOS/RHEL/Fedora
+    - sudo dnf groupinstall "Development Tools"
+    - sudo dnf install python3-devel
+
+    for Arch Linux
+    - sudo pacman -S base-devel python
