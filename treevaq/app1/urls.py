@@ -40,6 +40,13 @@ urlpatterns = [
     # --- About us ---
     path('about/', views.about, name='about'),
     
+    # --- Seller ---
+    path('seller/', views.seller_view, name='seller'),
+    path('seller/apply/', views.seller_apply_view, name='seller_apply'),
+    path('seller/add-product/', views.add_product_view, name='add_product'),
+    path('seller/edit-product/<int:product_id>/', views.edit_product_view, name='edit_product'),
+    path('seller/delete-product/<int:product_id>/', views.delete_product_view, name='delete_product'),
+    
     # --- User / Auth / Dashboard ---
     path('signup/', views.SignupView.as_view(), name='signup'),
     path('account/', views.account_view, name='account'),

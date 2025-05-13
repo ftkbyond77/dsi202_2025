@@ -31,6 +31,9 @@ import os
 from app1.pypromptpay import qr_code
 import logging
 
+from django.core.exceptions import PermissionDenied
+from .forms import SellerApplicationForm, ProductPostForm
+
 # Initialize logger
 logger = logging.getLogger(__name__)
 
@@ -829,6 +832,112 @@ def about(request):
         'site_name': 'Treevaq',
     }
     return render(request, 'app1/about.html', context)
+
+def seller_view(request):
+    is_seller = request.user.profile.is_seller if request.user.is_authenticated and hasattr(request.user, 'profile') else False
+    products = Product.objects.filter(seller=request.user) if is_seller else []
+    
+    context = {
+        'is_seller': is_seller,
+        'products': products,
+    }
+    return render(request, 'app1/seller.html', context)
+
+@login_required
+def seller_apply_view(request):
+    if request.user.profile.is_seller:
+        messages.info(request, 'You are already a registered seller.')
+        return redirect('app1:seller')
+    
+    if request.method == 'POST':
+        form = SellerApplicationForm(request.POST)
+        if form.is_valid():
+            # For simplicity, mark user as seller; in production, consider an admin approval process
+            request.user.profile.is_seller = True
+            request.user.profile.save()
+            messages.success(request, 'Your seller application has been submitted successfully!')
+            return redirect('app1:seller')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = SellerApplicationForm(initial={'email': request.user.email})
+    
+    return render(request, 'app1/seller.html', {
+        'form': form,
+        'is_seller': False,
+        'products': []
+    })
+
+@login_required
+def add_product_view(request):
+    if not request.user.profile.is_seller:
+        raise PermissionDenied("You must be a registered seller to add products.")
+    
+    if request.method == 'POST':
+        form = ProductPostForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save(commit=False)
+            product.seller = request.user
+            product.save()
+            # Update carbon footprint if sustainable
+            if product.is_sustainable:
+                footprint, created = product.carbon_footprint.get_or_create(product=product)
+                footprint.calculate_carbon_saving()
+            messages.success(request, 'Product added successfully!')
+            return redirect('app1:seller')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = ProductPostForm()
+    
+    return render(request, 'app1/seller.html', {
+        'product_form': form,
+        'is_seller': True,
+        'products': Product.objects.filter(seller=request.user)
+    })
+
+@login_required
+def edit_product_view(request, product_id):
+    if not request.user.profile.is_seller:
+        raise PermissionDenied("You must be a registered seller to edit products.")
+    
+    product = get_object_or_404(Product, id=product_id, seller=request.user)
+    
+    if request.method == 'POST':
+        form = ProductPostForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            product = form.save()
+            # Update carbon footprint if sustainable
+            if product.is_sustainable:
+                footprint, created = product.carbon_footprint.get_or_create(product=product)
+                footprint.calculate_carbon_saving()
+            messages.success(request, 'Product updated successfully!')
+            return redirect('app1:seller')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = ProductPostForm(instance=product)
+    
+    return render(request, 'app1/seller.html', {
+        'product_form': form,
+        'is_seller': True,
+        'products': Product.objects.filter(seller=request.user),
+        'editing_product': product
+    })
+
+@login_required
+def delete_product_view(request, product_id):
+    if not request.user.profile.is_seller:
+        raise PermissionDenied("You must be a registered seller to delete products.")
+    
+    product = get_object_or_404(Product, id=product_id, seller=request.user)
+    
+    if request.method == 'POST':
+        product.delete()
+        messages.success(request, 'Product deleted successfully!')
+        return redirect('app1:seller')
+    
+    return redirect('app1:seller')
 
 
 class ProductListCreateAPIView(generics.ListCreateAPIView):

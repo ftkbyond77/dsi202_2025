@@ -1,0 +1,860 @@
+{% extends 'app1/base.html' %}
+{% load static %}
+
+{% block title %}Become a Seller - Treevaq{% endblock %}
+
+{% block head_placeholder %}
+<style>
+    /* Core Design Elements */
+    :root {
+        --primary-color: #2e7d32;
+        --primary-light: #60ad5e;
+        --primary-dark: #005005;
+        --accent-color: #ff9800;
+        --text-dark: #263238;
+        --text-light: #f5f5f5;
+        --error-color: #d32f2f;
+        --success-color: #388e3c;
+        --border-radius: 0.375rem;
+        --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --transition-speed: 0.3s;
+    }
+    
+    .section-heading {
+        position: relative;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .section-heading::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary-dark), var(--primary-light));
+    }
+    
+    /* Hero Section */
+    .seller-hero {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('/static/app1/images/seller-hero.jpg');
+        background-size: cover;
+        background-position: center;
+        min-height: 500px;
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+    
+    .seller-hero::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 100px;
+        background: linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+        z-index: 1;
+    }
+    
+    .seller-hero .content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* Benefits and Stats */
+    .benefits-card {
+        transition: transform var(--transition-speed);
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .benefits-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stats-counter {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+    
+    /* Form Styling */
+    .form-container {
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        overflow: hidden;
+    }
+    
+    .form-header {
+        background-color: #f9f9f9;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 1.25rem;
+    }
+    
+    .form-body {
+        padding: 2rem;
+    }
+    
+    .form-field {
+        transition: all var(--transition-speed);
+        position: relative;
+        border: 1px solid #e0e0e0;
+        border-radius: var(--border-radius);
+    }
+    
+    .form-field:focus-within {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+    }
+    
+    .form-field label {
+        position: absolute;
+        top: -0.75rem;
+        left: 0.75rem;
+        padding: 0 0.25rem;
+        background-color: white;
+        font-size: 0.8rem;
+        color: var(--primary-color);
+        font-weight: 600;
+        transition: all var(--transition-speed);
+        z-index: 1;
+    }
+    
+    .form-field input,
+    .form-field textarea,
+    .form-field select {
+        border: none;
+        outline: none;
+        background-color: transparent;
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 1rem;
+    }
+    
+    .form-field-checkbox {
+        display: flex;
+        align-items: center;
+    }
+    
+    .error-message {
+        color: var(--error-color);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    /* Custom Checkbox */
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        margin-top: 0.5rem;
+    }
+    
+    .custom-checkbox {
+        position: relative;
+        cursor: pointer;
+        font-size: 1rem;
+        user-select: none;
+        display: flex;
+        align-items: center;
+    }
+    
+    .custom-checkbox input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .checkmark {
+        height: 24px;
+        width: 24px;
+        background-color: white;
+        border: 2px solid #bdbdbd;
+        border-radius: 4px;
+        margin-right: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--transition-speed);
+    }
+    
+    .custom-checkbox:hover input ~ .checkmark {
+        background-color: #f5f5f5;
+    }
+    
+    .custom-checkbox input:checked ~ .checkmark {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .checkmark:after {
+        content: "";
+        display: none;
+    }
+    
+    .custom-checkbox input:checked ~ .checkmark:after {
+        display: block;
+        width: 6px;
+        height: 12px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+    
+    /* Buttons */
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        transition: all var(--transition-speed);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+    
+    .btn-primary svg {
+        margin-right: 0.5rem;
+    }
+    
+    .btn-secondary {
+        background-color: white;
+        color: var(--primary-color);
+        border: 2px solid var(--primary-color);
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        transition: all var(--transition-speed);
+    }
+    
+    .btn-secondary:hover {
+        background-color: #f1f8e9;
+    }
+    
+    /* Product Cards */
+    .product-card {
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--box-shadow);
+        transition: all var(--transition-speed);
+    }
+    
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .product-image-container {
+        position: relative;
+        overflow: hidden;
+        height: 200px;
+    }
+    
+    .product-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform var(--transition-speed);
+    }
+    
+    .product-card:hover .product-image {
+        transform: scale(1.05);
+    }
+    
+    .product-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .product-details {
+        padding: 1rem;
+    }
+    
+    .product-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-edit,
+    .btn-delete,
+    .btn-view {
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+        font-size: 0.875rem;
+        transition: all var(--transition-speed);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn-edit {
+        background-color: #1976d2;
+        color: white;
+    }
+    
+    .btn-edit:hover {
+        background-color: #1565c0;
+    }
+    
+    .btn-delete {
+        background-color: #d32f2f;
+        color: white;
+    }
+    
+    .btn-delete:hover {
+        background-color: #c62828;
+    }
+    
+    .btn-view {
+        background-color: #424242;
+        color: white;
+    }
+    
+    .btn-view:hover {
+        background-color: #212121;
+    }
+    
+    /* Image Upload */
+    .image-upload-container {
+        position: relative;
+        border: 2px dashed #e0e0e0;
+        border-radius: var(--border-radius);
+        padding: 2rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all var(--transition-speed);
+    }
+    
+    .image-upload-container:hover {
+        border-color: var(--primary-color);
+        background-color: #f9f9f9;
+    }
+    
+    .image-upload-container input {
+        opacity: 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+    
+    .upload-icon {
+        font-size: 3rem;
+        color: #9e9e9e;
+        margin-bottom: 1rem;
+    }
+    
+    .preview-container {
+        margin-top: 1rem;
+        position: relative;
+        display: inline-block;
+    }
+    
+    .preview-image {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+    }
+    
+    .image-remove-btn {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background-color: white;
+        color: var(--error-color);
+        border: 1px solid #e0e0e0;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: var(--box-shadow);
+    }
+    
+    /* Loading State */
+    .loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition-speed);
+    }
+    
+    .loading-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    .loading-spinner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: white;
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+    }
+    
+    .loading-text {
+        margin-top: 1rem;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    /* Responsive */
+    @media (max-width: 640px) {
+        .seller-hero {
+            min-height: 400px;
+        }
+        
+        .seller-hero::before {
+            height: 50px;
+        }
+        
+        .benefits-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .product-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="global-loading">
+    <div class="loading-spinner">
+        <svg class="animate-spin h-12 w-12 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="loading-text">Processing your request...</p>
+    </div>
+</div>
+
+<!-- Hero Section -->
+<div class="w-full seller-hero">
+    <div class="container mx-auto px-4 text-center content">
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-6">Start Selling on Treevaq</h1>
+        <p class="text-xl text-gray-100 max-w-3xl mx-auto mb-8">
+            Join thousands of eco-conscious entrepreneurs making a difference while growing their business.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <a href="#apply" class="btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                Become a Seller
+            </a>
+            <a href="#benefits" class="btn-secondary">
+                Learn More
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Seller Benefits Section -->
+<div id="benefits" class="container mx-auto px-4 py-16">
+    <h2 class="text-3xl font-bold text-center text-gray-800 dark:text-white section-heading">Why Sell on Treevaq?</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 benefits-grid mb-16">
+        <div class="benefits-card bg-white p-6 rounded-lg shadow-md">
+            <div class="bg-green-100 p-3 rounded-full inline-block mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Access to Eco-Conscious Customers</h3>
+            <p class="text-gray-600">
+                Connect with millions of customers who prioritize sustainability and are actively looking for eco-friendly products.
+            </p>
+        </div>
+        
+        <div class="benefits-card bg-white p-6 rounded-lg shadow-md">
+            <div class="bg-green-100 p-3 rounded-full inline-block mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Trusted Platform</h3>
+            <p class="text-gray-600">
+                Build customer confidence with our rigorous certification processes and transparent business practices.
+            </p>
+        </div>
+        
+        <div class="benefits-card bg-white p-6 rounded-lg shadow-md">
+            <div class="bg-green-100 p-3 rounded-full inline-block mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Competitive Fees</h3>
+            <p class="text-gray-600">
+                Benefit from our seller-friendly fee structure designed to support sustainable businesses and maximize your profits.
+            </p>
+        </div>
+    </div>
+    
+    <!-- Stats Section -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 stats-grid mb-12">
+        <div class="bg-white p-6 rounded-lg shadow-md text-center">
+            <div class="stats-counter">5M+</div>
+            <p class="text-gray-600 font-medium">Monthly Visitors</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md text-center">
+            <div class="stats-counter">10K+</div>
+            <p class="text-gray-600 font-medium">Active Sellers</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md text-center">
+            <div class="stats-counter">98%</div>
+            <p class="text-gray-600 font-medium">Seller Satisfaction</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md text-center">
+            <div class="stats-counter">24/7</div>
+            <p class="text-gray-600 font-medium">Seller Support</p>
+        </div>
+    </div>
+</div>
+
+<!-- Seller Application Form -->
+<div id="apply" class="container mx-auto px-4 mb-20">
+    <h2 class="text-3xl font-bold text-center text-gray-800 dark:text-white section-heading">Apply to Become a Seller</h2>
+    
+    <div class="max-w-2xl mx-auto form-container bg-white dark:bg-gray-700">
+        <div class="form-header">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white">Seller Application</h3>
+            <p class="text-gray-600 dark:text-gray-300 text-sm">Complete the form below to join our marketplace</p>
+        </div>
+
+        <div class="form-body">
+            {% if user.is_authenticated %}
+                {% if user.profile.is_seller %}
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-green-700 font-medium">You are already a registered seller!</p>
+                                <p class="text-green-600 text-sm">Jump to your seller dashboard to manage your products.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <a href="#manage-products" class="btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Go to Seller Dashboard
+                        </a>
+                    </div>
+                {% else %}
+                    <form id="seller-apply-form" method="POST" action="{% url 'app1:seller_apply' %}" x-data="{ agreed: false }" @submit="document.getElementById('global-loading').classList.add('active')">
+                        {% csrf_token %}
+                        <div class="mb-6">
+                            <div class="form-field">
+                                <label for="{{ form.name.id_for_label }}">Full Name</label>
+                                <input id="{{ form.name.id_for_label }}" name="{{ form.name.name }}" type="text" value="{{ form.name.value|default:'' }}" required aria-describedby="name-error">
+                            </div>
+                            {% if form.name.errors %}
+                                <p id="name-error" class="error-message">{{ form.name.errors.as_text }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div class="form-field">
+                                <label for="{{ form.email.id_for_label }}">Email Address</label>
+                                <input id="{{ form.email.id_for_label }}" name="{{ form.email.name }}" type="email" value="{{ form.email.value|default:user.email }}" required aria-describedby="email-error">
+                            </div>
+                            {% if form.email.errors %}
+                                <p id="email-error" class="error-message">{{ form.email.errors.as_text }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div class="form-field">
+                                <label for="{{ form.business_name.id_for_label }}">Business Name</label>
+                                <input id="{{ form.business_name.id_for_label }}" name="{{ form.business_name.name }}" type="text" value="{{ form.business_name.value|default:'' }}" required aria-describedby="business_name-error">
+                            </div>
+                            {% if form.business_name.errors %}
+                                <p id="business_name-error" class="error-message">{{ form.business_name.errors.as_text }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-8">
+                            <div class="form-field">
+                                <label for="{{ form.description.id_for_label }}">Business Description</label>
+                                <textarea id="{{ form.description.id_for_label }}" name="{{ form.description.name }}" rows="5" required aria-describedby="description-error">{{ form.description.value|default:'' }}</textarea>
+                            </div>
+                            {% if form.description.errors %}
+                                <p id="description-error" class="error-message">{{ form.description.errors.as_text }}</p>
+                            {% endif %}
+                            <p class="text-sm text-gray-500 mt-2">Describe your business, products, sustainability practices, and what makes your offerings unique.</p>
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                            <h4 class="font-semibold text-gray-700 mb-2">Seller Agreement</h4>
+                            <p class="text-sm text-gray-600 mb-4">By applying to become a seller, you agree to:</p>
+                            <ul class="text-sm text-gray-600 list-disc pl-5 space-y-1">
+                                <li>Maintain accurate product information</li>
+                                <li>Ship products in a timely manner</li>
+                                <li>Comply with our sustainability standards</li>
+                                <li>Provide excellent customer service</li>
+                            </ul>
+                            <div class="checkbox-container mt-4">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" x-model="agreed" required>
+                                    <span class="checkmark"></span>
+                                    <span class="text-sm text-gray-700">I agree to the <a href="#" class="text-green-600 hover:underline">Seller Terms & Conditions</a></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button type="submit" class="btn-primary" :disabled="!agreed" aria-label="Submit seller application">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Submit Application
+                            </button>
+                        </div>
+                    </form>
+                {% endif %}
+            {% else %}
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-blue-700 font-medium">Account required</p>
+                            <p class="text-blue-600 text-sm">Please sign in or sign up to apply as a seller and start selling your sustainable products.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                        <a href="{% url 'login' %}" class="btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 0v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                            </svg>
+                            Sign In
+                        </a>
+                        <a href="{% url 'app1:signup' %}" class="btn-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                            </svg>
+                            Sign Up
+                        </a>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm">
+                        Already have an account? <a href="{% url 'login' %}" class="text-green-600 hover:underline">Sign in now</a> to get started.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Manage Products Section (for Sellers) -->
+{% if user.is_authenticated and user.profile.is_seller %}
+<div id="manage-products" class="container mx-auto px-4 mb-20">
+    <h2 class="text-3xl font-bold text-center text-gray-800 dark:text-white section-heading">Manage Your Products</h2>
+    
+    <div class="max-w-4xl mx-auto form-container bg-white dark:bg-gray-700">
+        <div class="form-header">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white">{% if editing_product %}Edit Product{% else %}Add a New Product{% endif %}</h3>
+            <p class="text-gray-600 dark:text-gray-300 text-sm">Manage your product listings to showcase your sustainable offerings</p>
+        </div>
+
+        <div class="form-body">
+            <form id="product-form" method="POST" action="{% if editing_product %}{% url 'app1:edit_product' editing_product.id %}{% else %}{% url 'app1:add_product' %}{% endif %}" enctype="multipart/form-data" x-data="{ image: {% if editing_product.image %}'{{ editing_product.image.url }}'{% else %}null{% endif %}, removeImage: false }" @submit="document.getElementById('global-loading').classList.add('active')">
+                {% csrf_token %}
+                <div class="mb-6">
+                    <div class="form-field">
+                        <label for="{{ product_form.name.id_for_label }}">Product Name</label>
+                        <input id="{{ product_form.name.id_for_label }}" name="{{ product_form.name.name }}" type="text" value="{{ product_form.name.value|default:'' }}" required aria-describedby="product_name-error">
+                    </div>
+                    {% if product_form.name.errors %}
+                        <p id="product_name-error" class="error-message">{{ product_form.name.errors.as_text }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="mb-6">
+                    <div class="form-field">
+                        <label for="{{ product_form.description.id_for_label }}">Description</label>
+                        <textarea id="{{ product_form.description.id_for_label }}" name="{{ product_form.description.name }}" rows="4" required aria-describedby="product_description-error">{{ product_form.description.value|default:'' }}</textarea>
+                    </div>
+                    {% if product_form.description.errors %}
+                        <p id="product_description-error" class="error-message">{{ product_form.description.errors.as_text }}</p>
+                    {% endif %}
+                    <p class="text-sm text-gray-500 mt-2">Provide a detailed description of your product, including its sustainability features.</p>
+                </div>
+
+                <div class="mb-6">
+                    <div class="form-field">
+                        <label for="{{ product_form.price.id_for_label }}">Price (USD)</label>
+                        <input id="{{ product_form.price.id_for_label }}" name="{{ product_form.price.name }}" type="number" step="0.01" value="{{ product_form.price.value|default:'' }}" required aria-describedby="product_price-error">
+                    </div>
+                    {% if product_form.price.errors %}
+                        <p id="product_price-error" class="error-message">{{ product_form.price.errors.as_text }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="mb-6">
+                    <div class="checkbox-container">
+                        <label class="custom-checkbox">
+                            <input id="{{ product_form.is_sustainable.id_for_label }}" name="{{ product_form.is_sustainable.name }}" type="checkbox" {% if product_form.is_sustainable.value %}checked{% endif %}>
+                            <span class="checkmark"></span>
+                            <span class="text-sm text-gray-700">This product is sustainable</span>
+                        </label>
+                    </div>
+                    {% if product_form.is_sustainable.errors %}
+                        <p id="product_is_sustainable-error" class="error-message">{{ product_form.is_sustainable.errors.as_text }}</p>
+                    {% endif %}
+                    <p class="text-sm text-gray-500 mt-2">Check if this product meets Treevaq's sustainability standards.</p>
+                </div>
+
+                <div class="mb-8">
+                    <label class="block text-gray-700 dark:text-gray-300 mb-2 font-medium">Product Image</label>
+                    <div class="image-upload-container" x-data="{ dragging: false }" @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false" @drop.prevent="dragging = false; $refs.fileInput.files = $event.dataTransfer.files; previewImage($event.dataTransfer.files[0])">
+                        <input id="{{ product_form.image.id_for_label }}" name="{{ product_form.image.name }}" type="file" accept="image/*" x-ref="fileInput" @change="previewImage($event.target.files[0])" aria-describedby="product_image-error">
+                        <div class="upload-icon">📷</div>
+                        <p class="text-gray-600 text-sm">Drag and drop an image or click to upload</p>
+                        <p class="text-gray-500 text-xs mt-1">Supported formats: JPG, PNG (max 5MB)</p>
+                    </div>
+                    <div class="preview-container" x-show="image">
+                        <img class="preview-image" :src="image" alt="Product image preview">
+                        <button type="button" class="image-remove-btn" @click="image = null; removeImage = true; $refs.fileInput.value = null" x-show="image" aria-label="Remove image">✕</button>
+                        <input type="hidden" name="remove_image" x-bind:value="removeImage ? '1' : '0'">
+                    </div>
+                    {% if product_form.image.errors %}
+                        <p id="product_image-error" class="error-message">{{ product_form.image.errors.as_text }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn-primary" aria-label="{% if editing_product %}Update product{% else %}Add product{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                        {% if editing_product %}Update Product{% else %}Add Product{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Product List -->
+    <div class="container mx-auto px-4 mt-12">
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Your Products</h3>
+        {% if products %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 product-grid">
+                {% for product in products %}
+                    <div class="product-card bg-white dark:bg-gray-800">
+                        <div class="product-image-container">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                            {% else %}
+                                <div class="bg-gray-200 w-full h-full flex items-center justify-center">
+                                    <span class="text-gray-500">No Image</span>
+                                </div>
+                            {% endif %}
+                            {% if product.is_sustainable %}
+                                <span class="product-badge">Sustainable</span>
+                            {% endif %}
+                        </div>
+                        <div class="product-details">
+                            <h4 class="text-lg font-semibold text-gray-800 dark:text-white">{{ product.name }}</h4>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm">{{ product.description|truncatewords:20 }}</p>
+                            <p class="text-green-600 dark:text-green-400 font-bold mt-2">${{ product.price }}</p>
+                            <div class="product-actions">
+                                <a href="{% url 'app1:edit_product' product.id %}" class="btn-edit" aria-label="Edit {{ product.name }}">Edit</a>
+                                <form method="POST" action="{% url 'app1:delete_product' product.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-delete" onclick="return confirm('Are you sure you want to delete {{ product.name|escapejs }}?');" aria-label="Delete {{ product.name }}">Delete</button>
+                                </form>
+                                <a href="{% url 'app1:product_detail' product.id %}" class="btn-view" aria-label="View {{ product.name }}">View</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg text-center">
+                <p class="text-gray-600 dark:text-gray-300 text-lg">You haven't added any products yet.</p>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mt-2">Start by adding a new product above to showcase your sustainable offerings!</p>
+                <a href="#manage-products" class="btn-primary mt-4 inline-flex">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Your First Product
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- JavaScript for Image Preview -->
+<script>
+    function previewImage(file) {
+        const previewContainer = document.querySelector('.preview-container');
+        const previewImage = previewContainer.querySelector('.preview-image');
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+{% endblock %}

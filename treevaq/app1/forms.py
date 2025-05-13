@@ -48,6 +48,12 @@ except NameError:
         price = forms.DecimalField(max_digits=10, decimal_places=2)
         image = forms.ImageField(required=False)
 
+class SellerApplicationForm(forms.Form):
+    name = forms.CharField(max_length=100, required=True)
+    email = forms.EmailField(required=True)
+    business_name = forms.CharField(max_length=200, required=True)
+    description = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}), required=True)
+
 class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review

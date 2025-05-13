@@ -7,6 +7,7 @@ from django.urls import reverse
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     profile_photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
+    is_seller = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username}'s Profile"

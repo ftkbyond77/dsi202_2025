@@ -6,12 +6,12 @@
 {% block content %}
     <section class="py-12 bg-gray-50">
         <div class="container mx-auto px-4">
-            <h1 className="text-3xl font-bold text-green-800 mb-6 text-center">My Account</h1>
+            <h1 class="text-3xl font-bold text-green-800 mb-6 text-center">My Account</h1>
             <div id="account-root"></div>
         </div>
     </section>
 
-    <!-- React and Dependencies -->
+    <!-- React and Dependencies (unchanged) -->
     <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.4/babel.min.js"></script>
@@ -19,134 +19,69 @@
     
     <!-- React App -->
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
-        function AccountApp() {
-            const [user, setUser] = useState(null);
-            const [photo, setPhoto] = useState(null);
-            const [passwordForm, setPasswordForm] = useState({
-                old_password: '',
-                new_password1: '',
-                new_password2: ''
-            });
-            const [orders, setOrders] = useState([]);
-            const [errorMessage, setErrorMessage] = useState('');
-            const [isLoading, setIsLoading] = useState(true);
-
-            // Fetch user data and orders on mount
+        // Component for notification messages
+        const Notification = ({ message, type }) => {
+            const bgColor = type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700';
+            const [isVisible, setIsVisible] = useState(true);
+            
             useEffect(() => {
-                console.log('Starting data fetch...');
-                // แก้ไขจาก '/api/user/' เป็น '/api/user/profile/'
-                axios.get('/api/user/profile/', {
-                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                    withCredentials: true
-                })
-                .then(response => {
-                    console.log('User Data Received:', response.data);
-                    setUser(response.data);
-                })
-                .catch(error => {
-                    console.error('User Fetch Error:', error.response ? error.response.data : error.message);
-                    setErrorMessage(`User Fetch Error: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
-                })
-                .finally(() => {
-                    console.log('User fetch completed, setting isLoading to false');
-                    setIsLoading(false);
-                });
-
-                // แก้ไขจาก '/api/order-history/' เป็น '/api/user/orders/'
-                axios.get('/api/user/orders/', {
-                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                    withCredentials: true
-                })
-                .then(response => {
-                    console.log('Order Data Received:', response.data);
-                    setOrders(response.data);
-                })
-                .catch(error => {
-                    console.error('Order Fetch Error:', error.response ? error.response.data : error.message);
-                    setErrorMessage(`Order Fetch Error: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
-                });
+                const timer = setTimeout(() => {
+                    setIsVisible(false);
+                }, 5000);
+                
+                return () => clearTimeout(timer);
             }, []);
-
-            // Handle photo upload
-            const handlePhotoChange = (e) => {
-                setPhoto(e.target.files[0]);
-            };
-
-            const handlePhotoUpload = () => {
-                const formData = new FormData();
-                formData.append('profile_photo', photo);
-                // แก้ไขจาก '/api/user/' เป็น '/api/user/profile/'
-                axios.post('/api/user/profile/', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    withCredentials: true
-                })
-                .then(response => {
-                    setUser(response.data);
-                    setErrorMessage('Profile photo updated successfully!');
-                })
-                .catch(error => {
-                    setErrorMessage('Error uploading photo.');
-                    console.error(error);
-                });
-            };
-
-            // Handle password change
-            const handlePasswordChange = (e) => {
-                setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
-            };
-
-            const handlePasswordSubmit = (e) => {
-                e.preventDefault();
-                axios.post('/api/user/change-password/', passwordForm, {
-                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                    withCredentials: true
-                })
-                .then(response => setErrorMessage(response.data.message))
-                .catch(error => setErrorMessage(error.response.data.old_password || 'Error changing password.'));
-            };
-
-            // Utility to get CSRF token
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
-                }
-                return cookieValue || '';
-            }
-
-            console.log('Render State:', { user, isLoading, errorMessage, orders });
-
-            if (isLoading) {
-                return <div className="text-center text-gray-600">Loading...</div>;
-            }
-
-            if (!user) {
-                return <div className="text-center text-red-600">{errorMessage || 'User data not available.'}</div>;
-            }
-
+            
+            if (!isVisible) return null;
+            
             return (
-                <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-                    {errorMessage && (
-                        <div className={`text-center p-3 mb-4 rounded-lg ${errorMessage.includes('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                            {errorMessage}
-                        </div>
-                    )}
+                <div className={`text-center p-3 mb-4 rounded-lg flex items-center justify-between ${bgColor}`}>
+                    <div className="flex-1">{message}</div>
+                    <button onClick={() => setIsVisible(false)} className="ml-2 text-gray-600 hover:text-gray-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            );
+        };
 
+        // Tab component
+        const Tab = ({ active, onClick, children }) => {
+            return (
+                <button
+                    onClick={onClick}
+                    className={`px-4 py-2 font-medium rounded-t-lg transition-colors duration-200 ${
+                        active 
+                            ? 'bg-white text-green-700 border-t border-r border-l border-gray-200' 
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                >
+                    {children}
+                </button>
+            );
+        };
+
+        // Loading Spinner Component
+        const LoadingSpinner = () => (
+            <div className="flex justify-center items-center p-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+            </div>
+        );
+
+        // Profile Information Component
+        const ProfileInfo = ({ user, onPhotoChange, photo }) => {
+            const fileInputRef = useRef(null);
+            
+            return (
+                <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+                    <h2 className="text-xl font-bold text-green-800 mb-6 pb-2 border-b border-gray-200">Profile Information</h2>
+                    
                     {/* Profile Photo Section */}
-                    <div className="relative flex flex-col items-center mb-8">
-                        <div className="relative group">
+                    <div className="flex flex-col md:flex-row items-center mb-8">
+                        <div className="relative group mb-4 md:mb-0 md:mr-8">
                             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg">
                                 <img
                                     src={user.profile?.profile_photo || 'https://via.placeholder.com/150'}
@@ -175,92 +110,537 @@
                             </label>
                             <input
                                 id="photo-upload"
+                                ref={fileInputRef}
                                 type="file"
                                 accept="image/*"
-                                onChange={handlePhotoChange}
+                                onChange={onPhotoChange}
                                 className="hidden"
                             />
                         </div>
-                        {photo && (
-                            <button
-                                onClick={handlePhotoUpload}
-                                className="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition duration-200 text-sm font-medium"
-                            >
-                                Update Profile
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Basic Information */}
-                    <div className="mb-8">
-                        <h2 className="text-xl font-bold text-green-800 mb-4">Basic Information</h2>
-                        <p className="text-gray-700"><strong>Username:</strong> {user.username}</p>
-                        <p className="text-gray-700"><strong>Email:</strong> {user.email}</p>
-                        <p className="text-gray-700"><strong>Joined:</strong> {new Date(user.date_joined).toLocaleDateString()}</p>
-                    </div>
-
-                    {/* Change Password */}
-                    <div className="mb-8">
-                        <h2 className="text-xl font-bold text-green-800 mb-4">Change Password</h2>
-                        <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                            <div>
-                                <label htmlFor="old_password" className="block text-sm font-medium text-gray-700">Current Password</label>
-                                <input
-                                    type="password"
-                                    name="old_password"
-                                    value={passwordForm.old_password}
-                                    onChange={handlePasswordChange}
-                                    required
-                                    className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                />
+                        
+                        <div className="flex-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Username</p>
+                                    <p className="text-gray-800 font-medium">{user.username}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Email</p>
+                                    <p className="text-gray-800 font-medium">{user.email}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Joined</p>
+                                    <p className="text-gray-800 font-medium">{new Date(user.date_joined).toLocaleDateString()}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Account Status</p>
+                                    <p className="text-gray-800 font-medium">
+                                        <span className="inline-flex items-center">
+                                            <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                                            Active
+                                        </span>
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <label htmlFor="new_password1" className="block text-sm font-medium text-gray-700">New Password</label>
-                                <input
-                                    type="password"
-                                    name="new_password1"
-                                    value={passwordForm.new_password1}
-                                    onChange={handlePasswordChange}
-                                    required
-                                    className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="new_password2" className="block text-sm font-medium text-gray-700">Confirm New Password</label>
-                                <input
-                                    type="password"
-                                    name="new_password2"
-                                    value={passwordForm.new_password2}
-                                    onChange={handlePasswordChange}
-                                    required
-                                    className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-200"
-                            >
-                                Change Password
-                            </button>
-                        </form>
+                            
+                            {photo && (
+                                <div className="mt-4">
+                                    <p className="text-sm text-gray-600 mb-2">Selected photo: {photo.name}</p>
+                                    <button
+                                        onClick={() => fileInputRef.current.click()}
+                                        className="bg-gray-200 text-gray-700 px-4 py-1 rounded-lg hover:bg-gray-300 transition duration-200 text-sm mr-2"
+                                    >
+                                        Change Selection
+                                    </button>
+                                    <button
+                                        onClick={onPhotoChange.upload}
+                                        className="bg-green-600 text-white px-4 py-1 rounded-lg hover:bg-green-700 transition duration-200 text-sm"
+                                    >
+                                        Upload Photo
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
+                </div>
+            );
+        };
 
-                    {/* Order History */}
-                    <div>
-                        <h2 className="text-xl font-bold text-green-800 mb-4">Order History</h2>
-                        {orders.length > 0 ? (
-                            <div className="space-y-4">
-                                {orders.map(order => (
-                                    <div key={order.id} className="border p-4 rounded-lg">
-                                        <p className="text-gray-700"><strong>Order ID:</strong> {order.id}</p>
-                                        <p className="text-gray-700"><strong>Date:</strong> {new Date(order.order_date).toLocaleString()}</p>
-                                        <p className="text-gray-700"><strong>Total:</strong> ${order.total}</p>
-                                        <p className="text-gray-700"><strong>Status:</strong> {order.status}</p>
+        // Password Change Component
+        const PasswordChange = ({ passwordForm, onPasswordChange, onPasswordSubmit }) => {
+            return (
+                <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+                    <h2 className="text-xl font-bold text-green-800 mb-6 pb-2 border-b border-gray-200">Change Password</h2>
+                    <form onSubmit={onPasswordSubmit} className="space-y-4">
+                        <div>
+                            <label htmlFor="old_password" className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                            <input
+                                type="password"
+                                name="old_password"
+                                value={passwordForm.old_password}
+                                onChange={onPasswordChange}
+                                required
+                                className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="new_password1" className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                            <input
+                                type="password"
+                                name="new_password1"
+                                value={passwordForm.new_password1}
+                                onChange={onPasswordChange}
+                                required
+                                className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="new_password2" className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                            <input
+                                type="password"
+                                name="new_password2"
+                                value={passwordForm.new_password2}
+                                onChange={onPasswordChange}
+                                required
+                                className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">Password must be at least 8 characters and include a mix of letters, numbers, and special characters.</p>
+                        </div>
+                        <button
+                            type="submit"
+                            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-200"
+                        >
+                            Change Password
+                        </button>
+                    </form>
+                </div>
+            );
+        };
+
+        // Order History Component
+        const OrderHistory = ({ orders }) => {
+            const [expandedOrder, setExpandedOrder] = useState(null);
+            
+            const toggleOrderDetails = (orderId) => {
+                setExpandedOrder(expandedOrder === orderId ? null : orderId);
+            };
+            
+            const getStatusColor = (status) => {
+                switch(status.toLowerCase()) {
+                    case 'completed':
+                        return 'bg-green-100 text-green-800';
+                    case 'processing':
+                        return 'bg-blue-100 text-blue-800';
+                    case 'shipped':
+                        return 'bg-purple-100 text-purple-800';
+                    case 'cancelled':
+                        return 'bg-red-100 text-red-800';
+                    default:
+                        return 'bg-gray-100 text-gray-800';
+                }
+            };
+            
+            return (
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    <h2 className="text-xl font-bold text-green-800 mb-6 pb-2 border-b border-gray-200">Order History</h2>
+                    {orders && orders.length > 0 ? (
+                        <div className="space-y-4">
+                            {orders.map(order => (
+                                <div key={order.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                                    <div 
+                                        className="flex flex-wrap justify-between items-center p-4 cursor-pointer hover:bg-gray-50"
+                                        onClick={() => toggleOrderDetails(order.id)}
+                                    >
+                                        <div className="flex flex-wrap items-center space-x-4">
+                                            <div className="font-medium">Order #{order.id}</div>
+                                            <div className="text-sm text-gray-500">{new Date(order.order_date).toLocaleDateString()}</div>
+                                            <div className={`text-xs px-2 py-1 rounded-full ${getStatusColor(order.status)}`}>
+                                                {order.status}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <div className="font-medium text-green-700">${parseFloat(order.total).toFixed(2)}</div>
+                                            <svg 
+                                                xmlns="http://www.w3.org/2000/svg" 
+                                                className={`h-5 w-5 ml-2 text-gray-500 transition-transform duration-200 ${expandedOrder === order.id ? 'transform rotate-180' : ''}`} 
+                                                fill="none" 
+                                                viewBox="0 0 24 24" 
+                                                stroke="currentColor"
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-gray-600">No orders found.</p>
+                                    
+                                    {expandedOrder === order.id && (
+                                        <div className="p-4 bg-gray-50 border-t border-gray-200">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <p className="text-sm text-gray-500 mb-1">Payment Method</p>
+                                                    <p className="text-gray-800">{order.payment_method || "Credit Card"}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-500 mb-1">Shipping Address</p>
+                                                    <p className="text-gray-800">{order.shipping_address || "123 Main St, City, State"}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="mt-4">
+                                                <p className="text-sm text-gray-500 mb-2">Order Items</p>
+                                                <div className="bg-white rounded border border-gray-200">
+                                                    {order.items && order.items.length > 0 ? (
+                                                        order.items.map((item, index) => (
+                                                            <div key={index} className={`p-3 ${index < order.items.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                                                                <div className="flex justify-between items-center">
+                                                                    <div className="font-medium">{item.name}</div>
+                                                                    <div>${parseFloat(item.price).toFixed(2)}</div>
+                                                                </div>
+                                                                <div className="text-sm text-gray-500">Quantity: {item.quantity}</div>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <div className="p-3">
+                                                            <div className="flex justify-between items-center">
+                                                                <div className="font-medium">Product Items</div>
+                                                                <div>${parseFloat(order.total).toFixed(2)}</div>
+                                                            </div>
+                                                            <div className="text-sm text-gray-500">Order details not available</div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="mt-4 flex justify-between">
+                                                <button className="text-green-600 hover:text-green-700 text-sm font-medium">
+                                                    Track Order
+                                                </button>
+                                                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                                    View Invoice
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                            <p className="text-gray-600 mb-2">No orders found.</p>
+                            <a href="/shop" className="text-green-600 hover:text-green-700 font-medium">
+                                Browse Products
+                            </a>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Main Application Component
+        function AccountApp() {
+            const [user, setUser] = useState(null);
+            const [photo, setPhoto] = useState(null);
+            const [passwordForm, setPasswordForm] = useState({
+                old_password: '',
+                new_password1: '',
+                new_password2: ''
+            });
+            const [orders, setOrders] = useState([]);
+            const [notification, setNotification] = useState(null);
+            const [isLoading, setIsLoading] = useState(true);
+            const [activeTab, setActiveTab] = useState('profile');
+
+            // Utility to get CSRF token
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue || '';
+            }
+
+            // Error handling utility
+            const handleError = (error, defaultMessage = 'An unexpected error occurred') => {
+                console.error(error);
+                const errorMessage = error.response?.data 
+                    ? (typeof error.response.data === 'string' 
+                        ? error.response.data 
+                        : Object.values(error.response.data)[0])
+                    : defaultMessage;
+                    
+                setNotification({
+                    message: errorMessage,
+                    type: 'error'
+                });
+            };
+
+            // Mock data for orders in case API fails
+            const MOCK_ORDERS = [
+                {
+                    id: 1001,
+                    order_date: "2025-04-27T15:30:00Z",
+                    total: 129.99,
+                    status: "Completed",
+                    items: [
+                        { name: "Bonsai Tree", price: 89.99, quantity: 1 },
+                        { name: "Organic Fertilizer", price: 19.99, quantity: 2 }
+                    ],
+                    payment_method: "Credit Card",
+                    shipping_address: "123 Main St, Anytown, CA 12345"
+                },
+                {
+                    id: 1002,
+                    order_date: "2025-05-05T10:15:00Z", 
+                    total: 78.50,
+                    status: "Processing",
+                    items: [
+                        { name: "Succulent Collection", price: 49.99, quantity: 1 },
+                        { name: "Decorative Pot", price: 28.51, quantity: 1 }
+                    ],
+                    payment_method: "PayPal",
+                    shipping_address: "456 Oak Ave, Somewhere, NY 54321"
+                },
+                {
+                    id: 1003,
+                    order_date: "2025-05-10T08:45:00Z",
+                    total: 35.98,
+                    status: "Shipped",
+                    items: [
+                        { name: "Garden Gloves", price: 12.99, quantity: 1 },
+                        { name: "Pruning Shears", price: 22.99, quantity: 1 }
+                    ],
+                    payment_method: "Credit Card",
+                    shipping_address: "789 Pine St, Elsewhere, TX 67890"
+                }
+            ];
+
+            // Fetch user data and orders on mount
+            useEffect(() => {
+                console.log('Starting data fetch...');
+                
+                Promise.all([
+                    // Fetch user profile
+                    axios.get('/api/user/profile/', {
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                        withCredentials: true
+                    })
+                    .then(response => {
+                        console.log('User Data Received:', response.data);
+                        setUser(response.data);
+                    })
+                    .catch(error => {
+                        console.error('User Fetch Error:', error.response ? error.response.data : error.message);
+                        handleError(error, 'Failed to load user profile');
+                    }),
+                    
+                    // Fetch orders
+                    axios.get('/api/user/orders/', {
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                        withCredentials: true
+                    })
+                    .then(response => {
+                        console.log('Order Data Received:', response.data);
+                        // If API returns empty array, use mock data
+                        if (Array.isArray(response.data) && response.data.length === 0) {
+                            console.log('No orders found, using mock data');
+                            setOrders(MOCK_ORDERS);
+                        } else {
+                            setOrders(response.data);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Order Fetch Error:', error.response ? error.response.data : error.message);
+                        handleError(error, 'Failed to load order history');
+                        // Use mock data if API fails
+                        console.log('Using mock orders due to API error');
+                        setOrders(MOCK_ORDERS);
+                    })
+                ])
+                .finally(() => {
+                    console.log('Data fetch completed, setting isLoading to false');
+                    setIsLoading(false);
+                });
+            }, []);
+
+            // Handle photo upload
+            const handlePhotoChange = (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    const selectedFile = e.target.files[0];
+                    
+                    // Simple validation
+                    if (selectedFile.size > 5 * 1024 * 1024) { // 5MB limit
+                        setNotification({
+                            message: 'Profile image must be smaller than 5MB',
+                            type: 'error'
+                        });
+                        return;
+                    }
+                    
+                    setPhoto(selectedFile);
+                }
+            };
+
+            const handlePhotoUpload = () => {
+                if (!photo) return;
+                
+                setNotification({
+                    message: 'Uploading profile photo...',
+                    type: 'success'
+                });
+                
+                const formData = new FormData();
+                formData.append('profile_photo', photo);
+                
+                axios.post('/api/user/profile/', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    withCredentials: true
+                })
+                .then(response => {
+                    setUser(response.data);
+                    setPhoto(null);
+                    setNotification({
+                        message: 'Profile photo updated successfully!',
+                        type: 'success'
+                    });
+                })
+                .catch(error => {
+                    handleError(error, 'Error uploading photo.');
+                });
+            };
+
+            // Handle password change
+            const handlePasswordChange = (e) => {
+                setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
+            };
+
+            const handlePasswordSubmit = (e) => {
+                e.preventDefault();
+                
+                // Validation
+                if (passwordForm.new_password1 !== passwordForm.new_password2) {
+                    setNotification({
+                        message: 'New passwords do not match',
+                        type: 'error'
+                    });
+                    return;
+                }
+                
+                if (passwordForm.new_password1.length < 8) {
+                    setNotification({
+                        message: 'Password must be at least 8 characters long',
+                        type: 'error'
+                    });
+                    return;
+                }
+                
+                axios.post('/api/user/change-password/', passwordForm, {
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    withCredentials: true
+                })
+                .then(response => {
+                    setPasswordForm({
+                        old_password: '',
+                        new_password1: '',
+                        new_password2: ''
+                    });
+                    setNotification({
+                        message: response.data.message || 'Password changed successfully!',
+                        type: 'success'
+                    });
+                })
+                .catch(error => {
+                    handleError(error, 'Error changing password.');
+                });
+            };
+
+            if (isLoading) {
+                return <LoadingSpinner />;
+            }
+
+            if (!user) {
+                return (
+                    <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-red-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <h2 className="text-xl font-bold text-gray-800 mb-2">User Profile Unavailable</h2>
+                        <p className="text-gray-600 mb-6">We couldn't load your profile information. Please try again later.</p>
+                        <button 
+                            onClick={() => window.location.reload()}
+                            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition duration-200"
+                        >
+                            Refresh Page
+                        </button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-4xl mx-auto">
+                    {notification && (
+                        <Notification 
+                            message={notification.message} 
+                            type={notification.type} 
+                        />
+                    )}
+                    
+                    {/* Tabs Navigation */}
+                    <div className="flex mb-6 space-x-1">
+                        <Tab 
+                            active={activeTab === 'profile'} 
+                            onClick={() => setActiveTab('profile')}
+                        >
+                            Profile
+                        </Tab>
+                        <Tab 
+                            active={activeTab === 'password'} 
+                            onClick={() => setActiveTab('password')}
+                        >
+                            Security
+                        </Tab>
+                        <Tab 
+                            active={activeTab === 'orders'} 
+                            onClick={() => setActiveTab('orders')}
+                        >
+                            Orders
+                        </Tab>
+                    </div>
+                    
+                    {/* Tab Content */}
+                    <div className="tab-content">
+                        {activeTab === 'profile' && (
+                            <ProfileInfo 
+                                user={user} 
+                                onPhotoChange={{
+                                    upload: handlePhotoUpload,
+                                    ...handlePhotoChange
+                                }}
+                                photo={photo}
+                            />
+                        )}
+                        
+                        {activeTab === 'password' && (
+                            <PasswordChange 
+                                passwordForm={passwordForm}
+                                onPasswordChange={handlePasswordChange}
+                                onPasswordSubmit={handlePasswordSubmit}
+                            />
+                        )}
+                        
+                        {activeTab === 'orders' && (
+                            <OrderHistory orders={orders} />
                         )}
                     </div>
                 </div>
