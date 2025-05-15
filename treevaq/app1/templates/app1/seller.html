@@ -7,25 +7,34 @@
 <style>
     /* Core Design Elements */
     :root {
-        --primary-color: #2e7d32;
-        --primary-light: #60ad5e;
-        --primary-dark: #005005;
-        --accent-color: #ff9800;
+        --primary-color: #38a169; /* Matches base.html green-600 */
+        --primary-light: #68d391; /* Matches base.html green-400 for dark mode */
+        --primary-dark: #276749; /* Matches base.html green-800 */
+        --accent-color: #68d391; /* Updated to green-400 for consistency */
         --text-dark: #263238;
         --text-light: #f5f5f5;
-        --error-color: #d32f2f;
-        --success-color: #388e3c;
+        --error-color: #e53e3e; /* Matches base.html red-700 in dark mode */
+        --success-color: #38a169; /* Matches base.html green-600 */
         --border-radius: 0.375rem;
         --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         --transition-speed: 0.3s;
     }
-    
+
+    /* Dark Mode Variables */
+    body.dark-mode {
+        --text-dark: #e2e8f0;
+        --bg-light: #2d3748;
+        --bg-lighter: #353c48;
+        --border-color: #4a5568;
+        --input-bg: #2a2f3a;
+    }
+
     .section-heading {
         position: relative;
         padding-bottom: 1rem;
         margin-bottom: 2rem;
     }
-    
+
     .section-heading::after {
         content: '';
         position: absolute;
@@ -36,7 +45,7 @@
         height: 3px;
         background: linear-gradient(90deg, var(--primary-dark), var(--primary-light));
     }
-    
+
     /* Hero Section */
     .seller-hero {
         background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('/static/app1/images/seller-hero.jpg');
@@ -47,7 +56,7 @@
         align-items: center;
         position: relative;
     }
-    
+
     .seller-hero::before {
         content: '';
         position: absolute;
@@ -55,60 +64,88 @@
         left: 0;
         right: 0;
         height: 100px;
-        background: linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+        background: linear-gradient(to top, var(--bg-light, #ffffff), transparent);
         z-index: 1;
     }
-    
+
+    body.dark-mode .seller-hero::before {
+        background: linear-gradient(to top, #1a202c, transparent);
+    }
+
     .seller-hero .content {
         position: relative;
         z-index: 2;
     }
-    
+
     /* Benefits and Stats */
     .benefits-card {
         transition: transform var(--transition-speed);
         border-left: 4px solid var(--primary-color);
     }
-    
+
+    body.dark-mode .benefits-card {
+        background-color: var(--bg-light);
+        border-left-color: var(--primary-light);
+    }
+
     .benefits-card:hover {
         transform: translateY(-5px);
     }
-    
+
     .stats-counter {
         font-size: 2.5rem;
         font-weight: 700;
         color: var(--primary-dark);
     }
-    
+
+    body.dark-mode .stats-counter {
+        color: var(--primary-light);
+    }
+
     /* Form Styling */
     .form-container {
         border-radius: var(--border-radius);
         box-shadow: var(--box-shadow);
         overflow: hidden;
     }
-    
+
+    body.dark-mode .form-container {
+        background-color: var(--bg-light);
+    }
+
     .form-header {
         background-color: #f9f9f9;
         border-bottom: 1px solid #e0e0e0;
         padding: 1.25rem;
     }
-    
+
+    body.dark-mode .form-header {
+        background-color: var(--bg-lighter);
+        border-bottom-color: var(--border-color);
+    }
+
     .form-body {
         padding: 2rem;
     }
-    
+
     .form-field {
         transition: all var(--transition-speed);
         position: relative;
         border: 1px solid #e0e0e0;
         border-radius: var(--border-radius);
+        background-color: white;
     }
-    
+
+    body.dark-mode .form-field {
+        border-color: var(--border-color);
+        background-color: var(--input-bg);
+    }
+
     .form-field:focus-within {
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+        box-shadow: 0 0 0 3px rgba(56, 161, 105, 0.2); /* Updated to match --primary-color */
     }
-    
+
     .form-field label {
         position: absolute;
         top: -0.75rem;
@@ -121,7 +158,12 @@
         transition: all var(--transition-speed);
         z-index: 1;
     }
-    
+
+    body.dark-mode .form-field label {
+        background-color: var(--input-bg);
+        color: var(--primary-light);
+    }
+
     .form-field input,
     .form-field textarea,
     .form-field select {
@@ -131,26 +173,37 @@
         width: 100%;
         padding: 0.75rem;
         font-size: 1rem;
+        color: var(--text-dark);
     }
-    
+
+    body.dark-mode .form-field input,
+    body.dark-mode .form-field textarea,
+    body.dark-mode .form-field select {
+        color: var(--text-light);
+    }
+
     .form-field-checkbox {
         display: flex;
         align-items: center;
     }
-    
+
     .error-message {
         color: var(--error-color);
         font-size: 0.875rem;
         margin-top: 0.25rem;
     }
-    
+
+    body.dark-mode .error-message {
+        color: #fc8181; /* Matches base.html red-400 */
+    }
+
     /* Custom Checkbox */
     .checkbox-container {
         display: flex;
         align-items: center;
         margin-top: 0.5rem;
     }
-    
+
     .custom-checkbox {
         position: relative;
         cursor: pointer;
@@ -159,13 +212,13 @@
         display: flex;
         align-items: center;
     }
-    
+
     .custom-checkbox input {
         opacity: 0;
         width: 0;
         height: 0;
     }
-    
+
     .checkmark {
         height: 24px;
         width: 24px;
@@ -178,21 +231,30 @@
         justify-content: center;
         transition: all var(--transition-speed);
     }
-    
+
+    body.dark-mode .checkmark {
+        background-color: var(--input-bg);
+        border-color: var(--border-color);
+    }
+
     .custom-checkbox:hover input ~ .checkmark {
         background-color: #f5f5f5;
     }
-    
+
+    body.dark-mode .custom-checkbox:hover input ~ .checkmark {
+        background-color: #4a5568;
+    }
+
     .custom-checkbox input:checked ~ .checkmark {
         background-color: var(--primary-color);
         border-color: var(--primary-color);
     }
-    
+
     .checkmark:after {
         content: "";
         display: none;
     }
-    
+
     .custom-checkbox input:checked ~ .checkmark:after {
         display: block;
         width: 6px;
@@ -201,7 +263,7 @@
         border-width: 0 2px 2px 0;
         transform: rotate(45deg);
     }
-    
+
     /* Buttons */
     .btn-primary {
         background-color: var(--primary-color);
@@ -216,21 +278,29 @@
         border: none;
         cursor: pointer;
     }
-    
+
+    body.dark-mode .btn-primary {
+        background-color: var(--primary-light);
+    }
+
     .btn-primary:hover {
         background-color: var(--primary-dark);
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
-    
+
+    body.dark-mode .btn-primary:hover {
+        background-color: #38a169; /* Matches base.html green-600 */
+    }
+
     .btn-primary:active {
         transform: translateY(0);
     }
-    
+
     .btn-primary svg {
         margin-right: 0.5rem;
     }
-    
+
     .btn-secondary {
         background-color: white;
         color: var(--primary-color);
@@ -240,11 +310,21 @@
         border-radius: var(--border-radius);
         transition: all var(--transition-speed);
     }
-    
-    .btn-secondary:hover {
-        background-color: #f1f8e9;
+
+    body.dark-mode .btn-secondary {
+        background-color: var(--bg-light);
+        color: var(--primary-light);
+        border-color: var(--primary-light);
     }
-    
+
+    .btn-secondary:hover {
+        background-color: #f1f8e9; /* Matches base.html green-50 equivalent */
+    }
+
+    body.dark-mode .btn-secondary:hover {
+        background-color: #4a5568;
+    }
+
     /* Product Cards */
     .product-card {
         border-radius: var(--border-radius);
@@ -252,29 +332,37 @@
         box-shadow: var(--box-shadow);
         transition: all var(--transition-speed);
     }
-    
+
+    body.dark-mode .product-card {
+        background-color: var(--bg-light);
+    }
+
     .product-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
     }
-    
+
+    body.dark-mode .product-card:hover {
+        box-shadow: 0 8px 15px rgba(255, 255, 255, 0.1);
+    }
+
     .product-image-container {
         position: relative;
         overflow: hidden;
         height: 200px;
     }
-    
+
     .product-image {
         width: 100%;
         height: 100%;
         object-fit: cover;
         transition: transform var(--transition-speed);
     }
-    
+
     .product-card:hover .product-image {
         transform: scale(1.05);
     }
-    
+
     .product-badge {
         position: absolute;
         top: 10px;
@@ -286,57 +374,85 @@
         font-size: 0.75rem;
         font-weight: 600;
     }
-    
+
+    body.dark-mode .product-badge {
+        background-color: var(--primary-light);
+    }
+
     .product-details {
         padding: 1rem;
     }
-    
+
     .product-actions {
         display: flex;
         gap: 0.5rem;
         margin-top: 1rem;
         flex-wrap: wrap;
     }
-    
+
     .btn-edit,
     .btn-delete,
     .btn-view {
         padding: 0.5rem 1rem;
         border-radius: var(--border-radius);
-        font-size: 0.875rem;
+        font-size: 1rem;
         transition: all var(--transition-speed);
         display: inline-flex;
         align-items: center;
         justify-content: center;
     }
-    
+
     .btn-edit {
-        background-color: #1976d2;
+        background-color: #38a169; /* Matches base.html green-600 */
         color: white;
     }
-    
+
+    body.dark-mode .btn-edit {
+        background-color: #68d391; /* Matches base.html green-400 */
+    }
+
     .btn-edit:hover {
-        background-color: #1565c0;
+        background-color: #276749; /* Matches base.html green-800 */
     }
-    
+
+    body.dark-mode .btn-edit:hover {
+        background-color: #38a169; /* Matches base.html green-600 */
+    }
+
     .btn-delete {
-        background-color: #d32f2f;
+        background-color: #e53e3e; /* Matches base.html red-700 */
         color: white;
     }
-    
+
+    body.dark-mode .btn-delete {
+        background-color: #fc8181; /* Matches base.html red-400 */
+    }
+
     .btn-delete:hover {
-        background-color: #c62828;
+        background-color: #c62828; /* Matches base.html red-800 */
     }
-    
+
+    body.dark-mode .btn-delete:hover {
+        background-color: #e53e3e; /* Matches base.html red-700 */
+    }
+
     .btn-view {
-        background-color: #424242;
+        background-color: #4a5568; /* Matches base.html gray-600 */
         color: white;
     }
-    
-    .btn-view:hover {
-        background-color: #212121;
+
+    body.dark-mode .btn-view {
+        background-color: #718096; /* Matches base.html gray-500 */
     }
-    
+
+    .btn-view:hover {
+        background-color: #2d3748; /* Matches base.html gray-700 */
+    }
+
+    body.dark-mode .btn-view:hover {
+        background-color: #4a5568; /* Matches base.html gray-600 */
+    }
+
     /* Image Upload */
     .image-upload-container {
         position: relative;
@@ -347,12 +463,22 @@
         cursor: pointer;
         transition: all var(--transition-speed);
     }
-    
+
+    body.dark-mode .image-upload-container {
+        border-color: var(--border-color);
+        background-color: var(--input-bg);
+    }
+
     .image-upload-container:hover {
         border-color: var(--primary-color);
         background-color: #f9f9f9;
     }
-    
+
+    body.dark-mode .image-upload-container:hover {
+        border-color: var(--primary-light);
+        background-color: var(--bg-lighter);
+    }
+
     .image-upload-container input {
         opacity: 0;
         position: absolute;
@@ -362,26 +488,30 @@
         height: 100%;
         cursor: pointer;
     }
-    
+
     .upload-icon {
         font-size: 3rem;
         color: #9e9e9e;
         margin-bottom: 1rem;
     }
-    
+
+    body.dark-mode .upload-icon {
+        color: #a0aec0;
+    }
+
     .preview-container {
         margin-top: 1rem;
         position: relative;
         display: inline-block;
     }
-    
+
     .preview-image {
         max-width: 100%;
         max-height: 200px;
         border-radius: var(--border-radius);
         box-shadow: var(--box-shadow);
     }
-    
+
     .image-remove-btn {
         position: absolute;
         top: -10px;
@@ -398,7 +528,13 @@
         cursor: pointer;
         box-shadow: var(--box-shadow);
     }
-    
+
+    body.dark-mode .image-remove-btn {
+        background-color: var(--bg-light);
+        border-color: var(--border-color);
+        color: #fc8181; /* Matches base.html red-400 */
+    }
+
     /* Loading State */
     .loading-overlay {
         position: fixed;
@@ -412,12 +548,12 @@
         pointer-events: none;
         transition: opacity var(--transition-speed);
     }
-    
+
     .loading-overlay.active {
         opacity: 1;
         pointer-events: auto;
     }
-    
+
     .loading-spinner {
         display: flex;
         flex-direction: column;
@@ -427,31 +563,39 @@
         border-radius: var(--border-radius);
         box-shadow: var(--box-shadow);
     }
-    
+
+    body.dark-mode .loading-spinner {
+        background-color: var(--bg-light);
+    }
+
     .loading-text {
         margin-top: 1rem;
         font-weight: 600;
         color: var(--primary-color);
     }
-    
+
+    body.dark-mode .loading-text {
+        color: var(--primary-light);
+    }
+
     /* Responsive */
     @media (max-width: 640px) {
         .seller-hero {
             min-height: 400px;
         }
-        
+
         .seller-hero::before {
             height: 50px;
         }
-        
+
         .benefits-grid {
             grid-template-columns: 1fr;
         }
-        
+
         .stats-grid {
             grid-template-columns: 1fr;
         }
-        
+
         .product-grid {
             grid-template-columns: 1fr;
         }
@@ -503,8 +647,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
                 </svg>
             </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">Access to Eco-Conscious Customers</h3>
-            <p class="text-gray-600">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">Access to Eco-Conscious Customers</h3>
+            <p class="text-gray-600 dark:text-gray-300">
                 Connect with millions of customers who prioritize sustainability and are actively looking for eco-friendly products.
             </p>
         </div>
@@ -515,8 +659,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
             </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">Trusted Platform</h3>
-            <p class="text-gray-600">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">Trusted Platform</h3>
+            <p class="text-gray-600 dark:text-gray-300">
                 Build customer confidence with our rigorous certification processes and transparent business practices.
             </p>
         </div>
@@ -527,8 +671,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">Competitive Fees</h3>
-            <p class="text-gray-600">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">Competitive Fees</h3>
+            <p class="text-gray-600 dark:text-gray-300">
                 Benefit from our seller-friendly fee structure designed to support sustainable businesses and maximize your profits.
             </p>
         </div>
@@ -538,22 +682,22 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 stats-grid mb-12">
         <div class="bg-white p-6 rounded-lg shadow-md text-center">
             <div class="stats-counter">5M+</div>
-            <p class="text-gray-600 font-medium">Monthly Visitors</p>
+            <p class="text-gray-600 dark:text-gray-300 font-medium">Monthly Visitors</p>
         </div>
         
         <div class="bg-white p-6 rounded-lg shadow-md text-center">
             <div class="stats-counter">10K+</div>
-            <p class="text-gray-600 font-medium">Active Sellers</p>
+            <p class="text-gray-600 dark:text-gray-300 font-medium">Active Sellers</p>
         </div>
         
         <div class="bg-white p-6 rounded-lg shadow-md text-center">
             <div class="stats-counter">98%</div>
-            <p class="text-gray-600 font-medium">Seller Satisfaction</p>
+            <p class="text-gray-600 dark:text-gray-300 font-medium">Seller Satisfaction</p>
         </div>
         
         <div class="bg-white p-6 rounded-lg shadow-md text-center">
             <div class="stats-counter">24/7</div>
-            <p class="text-gray-600 font-medium">Seller Support</p>
+            <p class="text-gray-600 dark:text-gray-300 font-medium">Seller Support</p>
         </div>
     </div>
 </div>
@@ -579,8 +723,8 @@
                                 </svg>
                             </div>
                             <div class="ml-3">
-                                <p class="text-green-700 font-medium">You are already a registered seller!</p>
-                                <p class="text-green-600 text-sm">Jump to your seller dashboard to manage your products.</p>
+                                <p class="text-green-700 dark:text-green-300 font-medium">You are already a registered seller!</p>
+                                <p class="text-green-600 dark:text-green-400 text-sm">Jump to your seller dashboard to manage your products.</p>
                             </div>
                         </div>
                     </div>
@@ -633,13 +777,13 @@
                             {% if form.description.errors %}
                                 <p id="description-error" class="error-message">{{ form.description.errors.as_text }}</p>
                             {% endif %}
-                            <p class="text-sm text-gray-500 mt-2">Describe your business, products, sustainability practices, and what makes your offerings unique.</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Describe your business, products, sustainability practices, and what makes your offerings unique.</p>
                         </div>
 
                         <div class="bg-gray-50 p-4 rounded-lg mb-6">
-                            <h4 class="font-semibold text-gray-700 mb-2">Seller Agreement</h4>
-                            <p class="text-sm text-gray-600 mb-4">By applying to become a seller, you agree to:</p>
-                            <ul class="text-sm text-gray-600 list-disc pl-5 space-y-1">
+                            <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Seller Agreement</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">By applying to become a seller, you agree to:</p>
+                            <ul class="text-sm text-gray-600 dark:text-gray-400 list-disc pl-5 space-y-1">
                                 <li>Maintain accurate product information</li>
                                 <li>Ship products in a timely manner</li>
                                 <li>Comply with our sustainability standards</li>
@@ -649,7 +793,7 @@
                                 <label class="custom-checkbox">
                                     <input type="checkbox" x-model="agreed" required>
                                     <span class="checkmark"></span>
-                                    <span class="text-sm text-gray-700">I agree to the <a href="#" class="text-green-600 hover:underline">Seller Terms & Conditions</a></span>
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">I agree to the <a href="#" class="text-green-600 dark:text-green-400 hover:underline">Seller Terms & Conditions</a></span>
                                 </label>
                             </div>
                         </div>
@@ -673,8 +817,8 @@
                             </svg>
                         </div>
                         <div class="ml-3">
-                            <p class="text-blue-700 font-medium">Account required</p>
-                            <p class="text-blue-600 text-sm">Please sign in or sign up to apply as a seller and start selling your sustainable products.</p>
+                            <p class="text-blue-700 dark:text-blue-300 font-medium">Account required</p>
+                            <p class="text-blue-600 dark:text-blue-400 text-sm">Please sign in or sign up to apply as a seller and start selling your sustainable products.</p>
                         </div>
                     </div>
                 </div>
@@ -694,7 +838,7 @@
                         </a>
                     </div>
                     <p class="text-gray-600 dark:text-gray-300 text-sm">
-                        Already have an account? <a href="{% url 'login' %}" class="text-green-600 hover:underline">Sign in now</a> to get started.
+                        Already have an account? <a href="{% url 'login' %}" class="text-green-600 dark:text-green-400 hover:underline">Sign in now</a> to get started.
                     </p>
                 </div>
             {% endif %}
@@ -734,7 +878,7 @@
                     {% if product_form.description.errors %}
                         <p id="product_description-error" class="error-message">{{ product_form.description.errors.as_text }}</p>
                     {% endif %}
-                    <p class="text-sm text-gray-500 mt-2">Provide a detailed description of your product, including its sustainability features.</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Provide a detailed description of your product, including its sustainability features.</p>
                 </div>
 
                 <div class="mb-6">
@@ -752,13 +896,13 @@
                         <label class="custom-checkbox">
                             <input id="{{ product_form.is_sustainable.id_for_label }}" name="{{ product_form.is_sustainable.name }}" type="checkbox" {% if product_form.is_sustainable.value %}checked{% endif %}>
                             <span class="checkmark"></span>
-                            <span class="text-sm text-gray-700">This product is sustainable</span>
+                            <span class="text-sm text-gray-700 dark:text-gray-300">This product is sustainable</span>
                         </label>
                     </div>
                     {% if product_form.is_sustainable.errors %}
                         <p id="product_is_sustainable-error" class="error-message">{{ product_form.is_sustainable.errors.as_text }}</p>
                     {% endif %}
-                    <p class="text-sm text-gray-500 mt-2">Check if this product meets Treevaq's sustainability standards.</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Check if this product meets Treevaq's sustainability standards.</p>
                 </div>
 
                 <div class="mb-8">
@@ -766,8 +910,8 @@
                     <div class="image-upload-container" x-data="{ dragging: false }" @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false" @drop.prevent="dragging = false; $refs.fileInput.files = $event.dataTransfer.files; previewImage($event.dataTransfer.files[0])">
                         <input id="{{ product_form.image.id_for_label }}" name="{{ product_form.image.name }}" type="file" accept="image/*" x-ref="fileInput" @change="previewImage($event.target.files[0])" aria-describedby="product_image-error">
                         <div class="upload-icon">📷</div>
-                        <p class="text-gray-600 text-sm">Drag and drop an image or click to upload</p>
-                        <p class="text-gray-500 text-xs mt-1">Supported formats: JPG, PNG (max 5MB)</p>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm">Drag and drop an image or click to upload</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Supported formats: JPG, PNG (max 5MB)</p>
                     </div>
                     <div class="preview-container" x-show="image">
                         <img class="preview-image" :src="image" alt="Product image preview">
@@ -802,8 +946,8 @@
                             {% if product.image %}
                                 <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
                             {% else %}
-                                <div class="bg-gray-200 w-full h-full flex items-center justify-center">
-                                    <span class="text-gray-500">No Image</span>
+                                <div class="bg-gray-200 dark:bg-gray-600 w-full h-full flex items-center justify-center">
+                                    <span class="text-gray-500 dark:text-gray-300">No Image</span>
                                 </div>
                             {% endif %}
                             {% if product.is_sustainable %}

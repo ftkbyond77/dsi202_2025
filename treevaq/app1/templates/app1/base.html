@@ -205,8 +205,6 @@
                 <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:blog' %}">Blog</a>
                 <a class="text-gray-703 hover:text-green-600" href="{% url 'app1:community' %}">Community</a>
                 <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:about' %}">About</a>
-                <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:dashboard' %}">Dashboard</a>
-                <a class="text-gray-700 hover:text-green-600" href="{% url 'app1:seller' %}">Seller</a>
                 <a class="text-gray-700 hover:text-green-600 relative" href="#" id="view-wishlist">
                     Wishlist
                     <span id="wishlist-count" class="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-green-500 rounded-full -mt-2 -mr-2 hidden"></span>
@@ -246,10 +244,14 @@
                                     {% endif %}
                                 </div>
                             </div>
+                            <a href="{% url 'app1:dashboard' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Dashboard</a>
+                            <a href="{% url 'app1:seller' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Seller</a>
                             <a href="{% url 'logout' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Log Out</a>
                         {% else %}
                             <a href="{% url 'login' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Sign In</a>
                             <a href="{% url 'app1:signup' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Sign Up</a>
+                            <a href="{% url 'app1:dashboard' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Dashboard</a>
+                            <a href="{% url 'app1:seller' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Seller</a>
                         {% endif %}
                     </div>
                 </div>
